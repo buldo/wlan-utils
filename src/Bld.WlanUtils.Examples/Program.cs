@@ -6,8 +6,13 @@ internal class Program
 {
     static async Task Main(string[] args)
     {
-        var loggerFactory = LoggerFactory.Create(loggingBuilder => loggingBuilder.AddConsole());
+        var loggerFactory = LoggerFactory.Create(
+            loggingBuilder => loggingBuilder
+                .AddConsole()
+                .SetMinimumLevel(LogLevel.Trace));
         var manager = new WlanManager(loggerFactory.CreateLogger<WlanManager>());
-        await manager.TrySwitchToMonitorAsync("wlx00c0caa98097");
+        var deviceName = "wlx00c0caa98097";
+        await manager.TrySwitchToMonitorAsync(deviceName);
+        await manager.IwSetFrequencyAndChannelWidth(deviceName, 5180, ChannelWidth._20MHz);
     }
 }

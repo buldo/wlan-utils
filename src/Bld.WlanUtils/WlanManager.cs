@@ -1,4 +1,6 @@
-﻿using Microsoft.Extensions.Logging;
+﻿using System;
+
+using Microsoft.Extensions.Logging;
 using RunProcessAsTask;
 
 namespace Bld.WlanUtils;
@@ -37,6 +39,46 @@ public class WlanManager
         _logger.LogDebug("END TrySwitchToMonitorAsync");
     }
 
+    /// <summary>
+    /// Set frequency and channel width via iw
+    /// </summary>
+    /// <param name="deviceName">Dev name</param>
+    /// <param name="freqMHz">Frequency in MHz</param>
+    /// <param name="channelWidth">Channel width</param>
+    /// <returns></returns>
+    /// <remarks>
+    /// Using:
+    ///   * iw
+    /// </remarks>
+    public async Task<bool> IwSetFrequencyAndChannelWidth(
+        string deviceName,
+        UInt32 freqMHz,
+        ChannelWidth channelWidth)
+    {
+        _logger.LogDebug("Trying to call 'iw dev @dev set freq @freq @width'");
+        var widthString = ChannelWidthAsIwString(channelWidth);
+        var result = await RunWithLog("iw", $"dev {deviceName} set freq {freqMHz} {widthString}");
+
+        if (result == null)
+        {
+            return false;
+        }
+
+        return result.ExitCode == 0;
+    }
+
+    private static string ChannelWidthAsIwString(ChannelWidth channelWidth)
+    {
+        return channelWidth switch
+        {
+            ChannelWidth._05MHz => "5MHz",
+            ChannelWidth._10MHz => "10Mhz",
+            ChannelWidth._20MHz => "HT20",
+            ChannelWidth._40MHz => "HT40+",
+            _ => throw new ArgumentOutOfRangeException(nameof(channelWidth), channelWidth, null)
+        };
+    }
+
     private async Task NmcliSetDeviceManagedStatus(string deviceName, bool managed)
     {
         _logger.LogDebug("Trying to call 'nmcli device set @dev managed @yes/@no'");
@@ -61,7 +103,7 @@ public class WlanManager
         await RunWithLog("ip", $"link set dev {deviceName} {(up ? "up" : "down")}");
     }
 
-    private async Task RunWithLog(string fileName, string arguments)
+    private async Task<ProcessResults?> RunWithLog(string fileName, string arguments)
     {
         ProcessResults result;
         try
@@ -71,7 +113,7 @@ public class WlanManager
         catch (Exception e)
         {
             _logger.LogError(e, "Error while calling {fileName}", fileName);
-            return;
+            return null;
         }
 
 
@@ -90,5 +132,7 @@ public class WlanManager
                 _logger.LogDebug(s);
             }
         }
+
+        return result;
     }
 }
