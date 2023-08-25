@@ -4,6 +4,16 @@
     <TargetFramework>net7.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
+    <Title>WlanUtils</Title>
+    <Authors>Roman Buldygin</Authors>
+    <Company>Bld</Company>
+    <PackageProjectUrl>https://github.com/buldo/wlan-utils</PackageProjectUrl>
+    <RepositoryUrl>https://github.com/buldo/wlan-utils.git</RepositoryUrl>
+    <RepositoryType>git</RepositoryType>
+    <PackageTags>wifi; wlan</PackageTags>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
+    <Description>Simple stupid utils for linux wlan management.
+Based on OpenHD code.</Description>
   </PropertyGroup>
 
   <ItemGroup>
