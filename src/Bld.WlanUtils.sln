@@ -3,9 +3,14 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.8.34004.107
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Bld.WlanUtils", "Bld.WlanUtils\Bld.WlanUtils.csproj", "{905086DD-3147-44DB-A679-1E8B852B791D}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Bld.WlanUtils", "Bld.WlanUtils\Bld.WlanUtils.csproj", "{905086DD-3147-44DB-A679-1E8B852B791D}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "_build", "..\build\_build.csproj", "{F060A7FD-A79F-4A43-9339-2638889FD51B}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{09664582-7D90-4377-B3A1-4641AA670020}"
+	ProjectSection(SolutionItems) = preProject
+		..\README.md = ..\README.md
+	EndProjectSection
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -13,12 +18,12 @@ Global
 		Release|Any CPU = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
-		{F060A7FD-A79F-4A43-9339-2638889FD51B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{F060A7FD-A79F-4A43-9339-2638889FD51B}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{905086DD-3147-44DB-A679-1E8B852B791D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{905086DD-3147-44DB-A679-1E8B852B791D}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{905086DD-3147-44DB-A679-1E8B852B791D}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{905086DD-3147-44DB-A679-1E8B852B791D}.Release|Any CPU.Build.0 = Release|Any CPU
+		{F060A7FD-A79F-4A43-9339-2638889FD51B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{F060A7FD-A79F-4A43-9339-2638889FD51B}.Release|Any CPU.ActiveCfg = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
