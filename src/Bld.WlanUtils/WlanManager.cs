@@ -63,7 +63,17 @@ public class WlanManager
 
     private async Task RunWithLog(string fileName, string arguments)
     {
-        var result = await ProcessEx.RunAsync(fileName, arguments);
+        ProcessResults result;
+        try
+        {
+            result = await ProcessEx.RunAsync(fileName, arguments);
+        }
+        catch (Exception e)
+        {
+            _logger.LogError(e, "Error while calling {fileName}", fileName);
+            return;
+        }
+
 
         if (result.StandardOutput.Length != 0)
         {

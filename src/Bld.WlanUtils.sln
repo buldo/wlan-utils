@@ -12,6 +12,8 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution 
 		..\README.md = ..\README.md
 	EndProjectSection
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Bld.WlanUtils.Examples", "Bld.WlanUtils.Examples\Bld.WlanUtils.Examples.csproj", "{6C81B46E-AC16-4C87-B7DD-9C4943FD2626}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -24,6 +26,10 @@ Global
 		{905086DD-3147-44DB-A679-1E8B852B791D}.Release|Any CPU.Build.0 = Release|Any CPU
 		{F060A7FD-A79F-4A43-9339-2638889FD51B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{F060A7FD-A79F-4A43-9339-2638889FD51B}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{6C81B46E-AC16-4C87-B7DD-9C4943FD2626}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{6C81B46E-AC16-4C87-B7DD-9C4943FD2626}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{6C81B46E-AC16-4C87-B7DD-9C4943FD2626}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{6C81B46E-AC16-4C87-B7DD-9C4943FD2626}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
