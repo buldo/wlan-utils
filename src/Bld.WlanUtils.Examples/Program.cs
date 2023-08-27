@@ -13,6 +13,10 @@ internal class Program
         var manager = new WlanManager(loggerFactory.CreateLogger<WlanManager>());
         var deviceName = "wlx00c0caa98097";
         await manager.TrySwitchToMonitorAsync(deviceName);
-        await manager.IwSetFrequencyAndChannelWidth(deviceName, 5180, ChannelWidth._20MHz);
+        await manager.IwSetFrequencyAndChannelWidth(deviceName, Channels.Ch048, ChannelWidth._20MHz);
+
+        var ch = Channels.Ch048;
+        var byFreq = ChannelsMapper.GetByFrequency(ch.ChannelFrequencyMHz);
+        var byNum = ChannelsMapper.GetByNumber(ch.ChannelNumber);
     }
 }

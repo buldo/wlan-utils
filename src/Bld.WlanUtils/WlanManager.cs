@@ -43,7 +43,7 @@ public class WlanManager
     /// Set frequency and channel width via iw
     /// </summary>
     /// <param name="deviceName">Dev name</param>
-    /// <param name="freqMHz">Frequency in MHz</param>
+    /// <param name="channel">Channel</param>
     /// <param name="channelWidth">Channel width</param>
     /// <returns></returns>
     /// <remarks>
@@ -52,12 +52,12 @@ public class WlanManager
     /// </remarks>
     public async Task<bool> IwSetFrequencyAndChannelWidth(
         string deviceName,
-        UInt32 freqMHz,
+        WlanChannel channel,
         ChannelWidth channelWidth)
     {
         _logger.LogDebug("Trying to call 'iw dev @dev set freq @freq @width'");
         var widthString = ChannelWidthAsIwString(channelWidth);
-        var result = await RunWithLog("iw", $"dev {deviceName} set freq {freqMHz} {widthString}");
+        var result = await RunWithLog("iw", $"dev {deviceName} set freq {channel.ChannelFrequencyMHz} {widthString}");
 
         if (result == null)
         {
