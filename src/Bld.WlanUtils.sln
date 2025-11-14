@@ -8,9 +8,12 @@ EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{09664582-7D90-4377-B3A1-4641AA670020}"
 	ProjectSection(SolutionItems) = preProject
 		..\README.md = ..\README.md
+		.aiassistant\rules\Interop.md = .aiassistant\rules\Interop.md
 	EndProjectSection
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Bld.WlanUtils.Examples", "Bld.WlanUtils.Examples\Bld.WlanUtils.Examples.csproj", "{6C81B46E-AC16-4C87-B7DD-9C4943FD2626}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Bld.Libnl", "Bld.Libnl\Bld.Libnl.csproj", "{C563871C-DF0B-4DCF-B082-1ABFE4068EB3}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -26,6 +29,10 @@ Global
 		{6C81B46E-AC16-4C87-B7DD-9C4943FD2626}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{6C81B46E-AC16-4C87-B7DD-9C4943FD2626}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{6C81B46E-AC16-4C87-B7DD-9C4943FD2626}.Release|Any CPU.Build.0 = Release|Any CPU
+		{C563871C-DF0B-4DCF-B082-1ABFE4068EB3}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{C563871C-DF0B-4DCF-B082-1ABFE4068EB3}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{C563871C-DF0B-4DCF-B082-1ABFE4068EB3}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{C563871C-DF0B-4DCF-B082-1ABFE4068EB3}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

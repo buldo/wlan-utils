@@ -1,4 +1,5 @@
-﻿using Microsoft.Extensions.Logging;
+﻿using Bld.Libnl;
+using Microsoft.Extensions.Logging;
 using NetworkManager.DBus;
 using RunProcessAsTask;
 using Tmds.DBus.Protocol;
@@ -11,10 +12,12 @@ public class WlanManager
     private readonly ILogger<WlanManager> _logger;
 
     private NmDbus? _nmDbus;
+    private readonly NlInterface _nlInterface;
 
     public WlanManager(ILogger<WlanManager> logger)
     {
         _logger = logger;
+        _nlInterface = NlInterface.Open();
     }
 
     /// <summary>

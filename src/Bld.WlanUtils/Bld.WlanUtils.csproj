@@ -22,4 +22,8 @@ Based on OpenHD code.</Description>
     <PackageReference Include="Tmds.DBus.Protocol" Version="0.21.2" />
   </ItemGroup>
 
+  <ItemGroup>
+    <ProjectReference Include="..\Bld.Libnl\Bld.Libnl.csproj" />
+  </ItemGroup>
+
 </Project>
