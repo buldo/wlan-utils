@@ -1,13 +1,16 @@
-﻿using System;
-
-using Microsoft.Extensions.Logging;
+﻿using Microsoft.Extensions.Logging;
+using NetworkManager.DBus;
 using RunProcessAsTask;
+using Tmds.DBus.Protocol;
+using Connection = Tmds.DBus.Protocol.Connection;
 
 namespace Bld.WlanUtils;
 
 public class WlanManager
 {
     private readonly ILogger<WlanManager> _logger;
+
+    private NmDbus? _nmDbus;
 
     public WlanManager(ILogger<WlanManager> logger)
     {
@@ -25,12 +28,16 @@ public class WlanManager
     ///   * iw
     ///   * ip
     /// </remarks>
-    public async Task TrySwitchToMonitorAsync(string deviceName)
+    public async Task TrySwitchToMonitorAsync(string deviceName, bool useRfKill = false)
     {
         _logger.LogDebug("START TrySwitchToMonitorAsync");
 
         await NmcliSetDeviceManagedStatus(deviceName, false);
-        await RfkillUnblockAll();
+        if (useRfKill)
+        {
+            await RfkillUnblockAll();
+        }
+
         await Task.Delay(TimeSpan.FromSeconds(1));
         await IpLinkSetCardState(deviceName, false);
         await IwEnableMonitorMode(deviceName);
@@ -135,4 +142,60 @@ public class WlanManager
 
         return result;
     }
+
+    public async Task<IReadOnlyList<WlanDeviceInfo>> GetWlanDevicesAsync()
+    {
+        var dbusInfo = await EnsureDbusConnectedAsync();
+        var devices = await dbusInfo.NetworkManager.GetDevicesAsync();
+
+        var wlanDevices = new List<WlanDeviceInfo>();
+        foreach (var objectPath in devices)
+        {
+            var dbusDevice = dbusInfo.NetworkManagerService.CreateDevice(objectPath);
+            var props = await dbusDevice.GetPropertiesAsync();
+
+            if (props.DeviceType == NMDeviceType.NM_DEVICE_TYPE_WIFI)
+            {
+                var wlanDevice = new WlanDeviceInfo
+                {
+                    Interface = props.Interface
+                };
+                wlanDevices.Add(wlanDevice);
+            }
+        }
+
+        return wlanDevices;
+    }
+
+    private async Task<NmDbus> EnsureDbusConnectedAsync()
+    {
+        if (_nmDbus != null)
+        {
+            return _nmDbus;
+        }
+
+        string? systemBusAddress = Address.System;
+        if (systemBusAddress is null)
+        {
+            throw new Exception("Can not determine system bus address");
+        }
+        var connection = new Connection(Address.System!);
+        await connection.ConnectAsync();
+
+        var service = new NetworkManagerService(connection, "org.freedesktop.NetworkManager");
+        var networkManager = service.CreateNetworkManager("/org/freedesktop/NetworkManager");
+        var info = new NmDbus(connection, service, networkManager);
+        _nmDbus = info;
+        return _nmDbus;
+    }
+
+    private record NmDbus(
+        Connection Connection,
+        NetworkManagerService NetworkManagerService,
+        NetworkManager.DBus.NetworkManager NetworkManager);
+}
+
+public class WlanDeviceInfo
+{
+    public required string Interface { get; init; }
 }
