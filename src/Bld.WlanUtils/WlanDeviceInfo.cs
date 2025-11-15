@@ -5,6 +5,16 @@ namespace Bld.WlanUtils;
 
 public class WlanDeviceInfo
 {
-    public required WiFiInterfaceInfo NlInterfaceInfo { get; init; }
-    public string Interface => ((Nl80211AttributeValue<string>)(NlInterfaceInfo.Attributes[Nl80211Attribute.NL80211_ATTR_IFNAME])).Value;
+    public WlanDeviceInfo(
+        Dictionary<Nl80211Attribute, INl80211AttributeValue> phyAttributes,
+        Dictionary<Nl80211Attribute, INl80211AttributeValue> interfaceAttributes)
+    {
+        PhyAttributes = phyAttributes;
+        InterfaceAttributes = interfaceAttributes;
+    }
+
+    public IReadOnlyDictionary<Nl80211Attribute, INl80211AttributeValue> PhyAttributes { get; }
+    public IReadOnlyDictionary<Nl80211Attribute, INl80211AttributeValue> InterfaceAttributes { get; }
+
+    public string InterfaceName => ((Nl80211AttributeValue<string>)InterfaceAttributes[Nl80211Attribute.NL80211_ATTR_IFNAME]).Value;
 }

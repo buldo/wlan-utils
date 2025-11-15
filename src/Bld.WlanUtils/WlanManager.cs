@@ -147,14 +147,41 @@ public class WlanManager
         return result;
     }
 
-    public async Task<IReadOnlyList<WlanDeviceInfo>> GetWlanDevicesAsync()
+    public IReadOnlyList<WlanDeviceInfo> GetWlanInterfaces()
     {
-        var interfaces = _nlInterface.Nl80211GetInterfaces();
-        return interfaces
-            .Where(iface => iface.Attributes.ContainsKey(Nl80211Attribute.NL80211_ATTR_IFNAME))
-            .Select(i => new WlanDeviceInfo() { NlInterfaceInfo = i})
-            .ToList();
+        var interfaces = _nlInterface.DumpInterface();
+        var phy = _nlInterface.DumpWiPhy();
+        var phyByWiPhy = phy.ToDictionary(
+            p => ((Nl80211AttributeValue<uint>)p[Nl80211Attribute.NL80211_ATTR_WIPHY]).Value,
+            p => p);
 
+        var ret = new List<WlanDeviceInfo>();
+        foreach (var iface in interfaces)
+        {
+            if(!iface.TryGetValue(Nl80211Attribute.NL80211_ATTR_IFNAME, out var ifaceName))
+            {
+                continue;
+            }
+
+            if (!iface.TryGetValue(Nl80211Attribute.NL80211_ATTR_WIPHY, out var phyIdValue))
+            {
+                continue;
+            }
+
+            var phyId = ((Nl80211AttributeValue<uint>)phyIdValue).Value;
+            if (!phyByWiPhy.TryGetValue(phyId, out var phyInfo))
+            {
+                continue;
+            }
+
+            ret.Add(new WlanDeviceInfo(phyInfo, iface));
+        }
+
+        return ret;
+    }
+
+    // public async Task<IReadOnlyList<WlanDeviceInfo>> GetWlanInterfaces()
+    // {
         // var dbusInfo = await EnsureDbusConnectedAsync();
         // var devices = await dbusInfo.NetworkManager.GetDevicesAsync();
         //
@@ -175,7 +202,7 @@ public class WlanManager
         // }
         //
         // return wlanDevices;
-    }
+    //}
 
     private async Task<NmDbus> EnsureDbusConnectedAsync()
     {

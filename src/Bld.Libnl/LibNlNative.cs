@@ -27,7 +27,7 @@ public static unsafe partial class LibNlNative
     public static partial NlMsg nlmsg_alloc();
 
     [LibraryImport("libnl-3.so", EntryPoint = "nlmsg_free")]
-    public static partial void nlmsg_free(NlMsg msg);
+    public static partial void nlmsg_free(IntPtr msg);
 
     // Generic netlink message construction
     [LibraryImport("libnl-genl-3.so", EntryPoint = "genlmsg_put")]
@@ -46,6 +46,7 @@ public static unsafe partial class LibNlNative
     public static partial int nla_put_u32(NlMsg msg, int attrtype, uint value);
 
     // Callback handling
+    [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
     public delegate int NlRecvmsgCallback(IntPtr msg, IntPtr arg);
 
     [LibraryImport("libnl-3.so", EntryPoint = "nl_socket_modify_cb")]

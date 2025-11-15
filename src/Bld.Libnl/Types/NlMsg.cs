@@ -1,13 +1,27 @@
+using Microsoft.Win32.SafeHandles;
+
 namespace Bld.Libnl.Types;
 
-/// <summary>Type-safe wrapper for nl_msg pointer</summary>
-public readonly struct NlMsg
+/// <summary>Type-safe wrapper for nl_msg pointer with automatic lifetime management</summary>
+public sealed class NlMsg : SafeHandleZeroOrMinusOneIsInvalid
 {
-    public readonly IntPtr Handle;
+    public NlMsg() : base(ownsHandle: true)
+    {
+    }
 
-    public NlMsg(IntPtr handle) => Handle = handle;
+    public NlMsg(IntPtr handle, bool ownsHandle = true) : base(ownsHandle)
+    {
+        SetHandle(handle);
+    }
 
-    public bool IsValid => Handle != IntPtr.Zero;
+    protected override bool ReleaseHandle()
+    {
+        if (handle != IntPtr.Zero)
+        {
+            LibNlNative.nlmsg_free(handle);
+        }
+        return true;
+    }
 
-    public static implicit operator IntPtr(NlMsg msg) => msg.Handle;
+    public static implicit operator IntPtr(NlMsg msg) => msg.DangerousGetHandle();
 }

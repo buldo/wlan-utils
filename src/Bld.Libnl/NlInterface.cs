@@ -7,12 +7,18 @@ public class NlInterface : IDisposable
 {
     private readonly NlSock _nlSocket;
     private readonly int _nl80211Id;
+    private readonly LibNlNative.NlRecvmsgCallback _interfaceCallback;
+    private readonly GCHandle _interfaceCallbackHandle;
     private bool _disposed;
 
     private NlInterface(NlSock nlSocket, int nl80211Id)
     {
         _nlSocket = nlSocket;
         _nl80211Id = nl80211Id;
+
+        // Keep callback alive for the lifetime of this instance
+        _interfaceCallback = HandleNl80211MessageCallback;
+        _interfaceCallbackHandle = GCHandle.Alloc(_interfaceCallback);
     }
 
     public static NlInterface Open()
@@ -40,6 +46,75 @@ public class NlInterface : IDisposable
         return new NlInterface(nlSocket, nl80211Id);
     }
 
+    public List<Dictionary<Nl80211Attribute, INl80211AttributeValue>> DumpWiPhy() => Nl80211Dump(Nl80211Command.NL80211_CMD_GET_WIPHY);
+    public List<Dictionary<Nl80211Attribute, INl80211AttributeValue>> DumpInterface() => Nl80211Dump(Nl80211Command.NL80211_CMD_GET_INTERFACE);
+
+    private List<Dictionary<Nl80211Attribute, INl80211AttributeValue>> Nl80211Dump(Nl80211Command command)
+    {
+        ObjectDisposedException.ThrowIf(_disposed, this);
+
+        var responses = new List<Dictionary<Nl80211Attribute, INl80211AttributeValue>>();
+
+        using var msg = LibNlNative.nlmsg_alloc();
+        if (msg.IsInvalid)
+        {
+            throw new Exception("Failed to allocate netlink message");
+        }
+
+        // Build the message: nl80211 GET_INTERFACE command with DUMP flag to get all interfaces
+        var hdr = LibNlNative.genlmsg_put(
+            msg,
+            0, // portid (automatic)
+            0, // sequence (automatic)
+            _nl80211Id, // nl80211 family id
+            0, // header length
+            (NetlinkMessageFlags.NLM_F_REQUEST | NetlinkMessageFlags.NLM_F_DUMP),
+            (byte)command,
+            0 // version
+        );
+
+        if (hdr == IntPtr.Zero)
+        {
+            throw new Exception("Failed to build netlink message");
+        }
+
+        var interfacesHandle = GCHandle.Alloc(responses);
+        try
+        {
+            // Set the callback for valid messages
+            var cbResult = LibNlNative.nl_socket_modify_cb(
+                _nlSocket,
+                (int)NetlinkCallbackType.NL_CB_VALID,
+                (int)NetlinkCallbackKind.NL_CB_CUSTOM,
+                _interfaceCallback,
+                GCHandle.ToIntPtr(interfacesHandle)
+            );
+
+            if (cbResult != 0)
+            {
+                throw new Exception($"Failed to set callback: {cbResult}");
+            }
+
+            var sendResult = LibNlNative.nl_send_auto(_nlSocket, msg);
+            if (sendResult < 0)
+            {
+                throw new Exception($"Failed to send netlink message: {sendResult}");
+            }
+
+            var recvResult = LibNlNative.nl_recvmsgs_default(_nlSocket);
+            if (recvResult < 0)
+            {
+                throw new Exception($"Failed to receive netlink messages: {recvResult}");
+            }
+
+            return responses;
+        }
+        finally
+        {
+            interfacesHandle.Free();
+        }
+    }
+
     protected virtual void Dispose(bool disposing)
     {
         if (!_disposed)
@@ -47,6 +122,11 @@ public class NlInterface : IDisposable
             if (_nlSocket.IsValid)
             {
                 LibNlNative.nl_socket_free(_nlSocket);
+            }
+
+            if (_interfaceCallbackHandle.IsAllocated)
+            {
+                _interfaceCallbackHandle.Free();
             }
 
             _disposed = true;
@@ -64,120 +144,14 @@ public class NlInterface : IDisposable
         GC.SuppressFinalize(this);
     }
 
-    /// <summary>
-    /// Gets list of all WiFi interfaces in the system
-    /// </summary>
-    /// <returns>List of WiFi interface information</returns>
-    public List<WiFiInterfaceInfo> Nl80211GetInterfaces()
+    private int HandleNl80211MessageCallback(IntPtr msgPtr, IntPtr arg)
     {
-        ObjectDisposedException.ThrowIf(_disposed, this);
-
-        var interfaces = new List<WiFiInterfaceInfo>();
-
-        var msg = LibNlNative.nlmsg_alloc();
-        if (!msg.IsValid)
-        {
-            throw new Exception("Failed to allocate netlink message");
-        }
-
-        try
-        {
-            // Build the message: nl80211 GET_INTERFACE command with DUMP flag to get all interfaces
-            var hdr = LibNlNative.genlmsg_put(
-                msg,
-                0, // portid (automatic)
-                0, // sequence (automatic)
-                _nl80211Id, // nl80211 family id
-                0, // header length
-                (NetlinkMessageFlags.NLM_F_REQUEST | NetlinkMessageFlags.NLM_F_DUMP),
-                (byte)Nl80211Command.NL80211_CMD_GET_INTERFACE,
-                0 // version
-            );
-
-            if (hdr == IntPtr.Zero)
-            {
-                throw new Exception("Failed to build netlink message");
-            }
-
-            // Setup callback to handle responses
-            LibNlNative.NlRecvmsgCallback callback = (msgPtr, arg) =>
-            {
-                return HandleInterfaceMessage(msgPtr, interfaces);
-            };
-
-            // Pin the delegate to prevent GC from collecting it during native calls
-            var callbackHandle = GCHandle.Alloc(callback);
-            try
-            {
-                // Set the callback for valid messages
-                var cbResult = LibNlNative.nl_socket_modify_cb(
-                    _nlSocket,
-                    (int)NetlinkCallbackType.NL_CB_VALID,
-                    (int)NetlinkCallbackKind.NL_CB_CUSTOM,
-                    callback,
-                    IntPtr.Zero
-                );
-
-                if (cbResult != 0)
-                {
-                    throw new Exception($"Failed to set callback: {cbResult}");
-                }
-
-                var sendResult = LibNlNative.nl_send_auto(_nlSocket, msg);
-                if (sendResult < 0)
-                {
-                    throw new Exception($"Failed to send netlink message: {sendResult}");
-                }
-
-                var recvResult = LibNlNative.nl_recvmsgs_default(_nlSocket);
-                if (recvResult < 0)
-                {
-                    throw new Exception($"Failed to receive netlink messages: {recvResult}");
-                }
-
-                return interfaces;
-            }
-            finally
-            {
-                callbackHandle.Free();
-            }
-        }
-        finally
-        {
-            LibNlNative.nlmsg_free(msg);
-        }
+        var interfacesHandle = GCHandle.FromIntPtr(arg);
+        var interfaces = (List<Dictionary<Nl80211Attribute, INl80211AttributeValue>>)interfacesHandle.Target!;
+        return HandleNl80211Message(msgPtr, interfaces);
     }
 
-    private static INl80211AttributeValue? GetStringAttribute(Nl80211Attribute attr, IntPtr nla)
-    {
-        var strPtr = LibNlNative.nla_get_string(nla);
-        if (strPtr != IntPtr.Zero)
-        {
-            var str = Marshal.PtrToStringUTF8(strPtr);
-            if (!string.IsNullOrEmpty(str))
-            {
-                return Nl80211AttributeValue.FromString(str);
-            }
-        }
-        return null;
-    }
-
-    private static INl80211AttributeValue? GetBinaryAttribute(Nl80211Attribute attr, IntPtr nla, int dataLen)
-    {
-        if (dataLen <= 0)
-            return null;
-
-        var dataPtr = LibNlNative.nla_data(nla);
-        if (dataPtr != IntPtr.Zero)
-        {
-            var rawData = new byte[dataLen];
-            Marshal.Copy(dataPtr, rawData, 0, dataLen);
-            return Nl80211AttributeValue.FromBinary(rawData);
-        }
-        return null;
-    }
-
-    private unsafe int HandleInterfaceMessage(IntPtr msgPtr, List<WiFiInterfaceInfo> interfaces)
+    private unsafe int HandleNl80211Message(IntPtr msgPtr, List<Dictionary<Nl80211Attribute, INl80211AttributeValue>> interfaces)
     {
         try
         {
@@ -214,13 +188,7 @@ public class NlInterface : IDisposable
                 }
             }
 
-            // Create object with all attributes
-            var info = new WiFiInterfaceInfo
-            {
-                Attributes = new System.Collections.ObjectModel.ReadOnlyDictionary<Nl80211Attribute, INl80211AttributeValue>(attributes)
-            };
-
-            interfaces.Add(info);
+            interfaces.Add(attributes);
             return 0; // NL_OK
         }
         catch
