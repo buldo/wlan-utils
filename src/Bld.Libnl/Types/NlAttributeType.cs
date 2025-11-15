@@ -3,7 +3,7 @@ namespace Bld.Libnl.Types;
 /// <summary>
 /// Netlink attribute types from linux/netlink.h
 /// </summary>
-public enum NlAttributeType
+public enum NlAttributeType : int
 {
     NLA_UNSPEC,	/**< Unspecified type, binary data chunk */
     NLA_U8,		/**< 8 bit integer */

@@ -148,26 +148,29 @@ public class WlanManager
 
     public async Task<IReadOnlyList<WlanDeviceInfo>> GetWlanDevicesAsync()
     {
-        var dbusInfo = await EnsureDbusConnectedAsync();
-        var devices = await dbusInfo.NetworkManager.GetDevicesAsync();
+        var interfaces = _nlInterface.Nl80211GetInterfaces();
+        return interfaces.Select(i => new WlanDeviceInfo() { Interface = "unknown" }).ToList();
 
-        var wlanDevices = new List<WlanDeviceInfo>();
-        foreach (var objectPath in devices)
-        {
-            var dbusDevice = dbusInfo.NetworkManagerService.CreateDevice(objectPath);
-            var props = await dbusDevice.GetPropertiesAsync();
-
-            if (props.DeviceType == NMDeviceType.NM_DEVICE_TYPE_WIFI)
-            {
-                var wlanDevice = new WlanDeviceInfo
-                {
-                    Interface = props.Interface
-                };
-                wlanDevices.Add(wlanDevice);
-            }
-        }
-
-        return wlanDevices;
+        // var dbusInfo = await EnsureDbusConnectedAsync();
+        // var devices = await dbusInfo.NetworkManager.GetDevicesAsync();
+        //
+        // var wlanDevices = new List<WlanDeviceInfo>();
+        // foreach (var objectPath in devices)
+        // {
+        //     var dbusDevice = dbusInfo.NetworkManagerService.CreateDevice(objectPath);
+        //     var props = await dbusDevice.GetPropertiesAsync();
+        //
+        //     if (props.DeviceType == NMDeviceType.NM_DEVICE_TYPE_WIFI)
+        //     {
+        //         var wlanDevice = new WlanDeviceInfo
+        //         {
+        //             Interface = props.Interface
+        //         };
+        //         wlanDevices.Add(wlanDevice);
+        //     }
+        // }
+        //
+        // return wlanDevices;
     }
 
     private async Task<NmDbus> EnsureDbusConnectedAsync()
