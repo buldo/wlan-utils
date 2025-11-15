@@ -207,34 +207,7 @@ public class NlInterface : IDisposable
                 }
 
                 var nl80211Attr = (Nl80211Attribute)i;
-
-                // Get the netlink attribute type (NLA_U8, NLA_U32, NLA_STRING, etc.)
-                var nlaType = LibNlNative.nla_type(tb[i]);
-                var dataLen = LibNlNative.nla_len(tb[i]);
-
-                // Extract value using appropriate nla_get_* method based on type
-                INl80211AttributeValue? attrValue = nlaType switch
-                {
-                    NlAttributeType.NLA_U8 => Nl80211AttributeValue.FromU8(LibNlNative.nla_get_u8(tb[i])),
-                    NlAttributeType.NLA_U16 => Nl80211AttributeValue.FromU16(LibNlNative.nla_get_u16(tb[i])),
-                    NlAttributeType.NLA_U32 => Nl80211AttributeValue.FromU32(LibNlNative.nla_get_u32(tb[i])),
-                    NlAttributeType.NLA_U64 => Nl80211AttributeValue.FromU64(LibNlNative.nla_get_u64(tb[i])),
-                    NlAttributeType.NLA_S8 => Nl80211AttributeValue.FromS8(LibNlNative.nla_get_s8(tb[i])),
-                    NlAttributeType.NLA_S16 => Nl80211AttributeValue.FromS16(LibNlNative.nla_get_s16(tb[i])),
-                    NlAttributeType.NLA_S32 => Nl80211AttributeValue.FromS32(LibNlNative.nla_get_s32(tb[i])),
-                    NlAttributeType.NLA_S64 => Nl80211AttributeValue.FromS64(LibNlNative.nla_get_s64(tb[i])),
-                    NlAttributeType.NLA_STRING or NlAttributeType.NLA_NUL_STRING => GetStringAttribute(nl80211Attr, tb[i]),
-                    NlAttributeType.NLA_MSECS => Nl80211AttributeValue.FromMsecs(LibNlNative.nla_get_msecs(tb[i])),
-                    NlAttributeType.NLA_FLAG => Nl80211AttributeValue.FromU8(1),
-                    NlAttributeType.NLA_NESTED or NlAttributeType.NLA_NESTED_COMPAT => Nl80211AttributeValue.FromNested(tb[i]),
-                    NlAttributeType.NLA_UNSPEC or NlAttributeType.NLA_BINARY => dataLen switch
-                    {
-                        _ => GetBinaryAttribute(nl80211Attr, tb[i], dataLen)
-                    },
-
-                    _ => GetBinaryAttribute(nl80211Attr, tb[i], dataLen)
-                };
-
+                var attrValue = Nl80211AttributeParser.ParseAttribute(nl80211Attr, tb[i]);
                 if (attrValue != null)
                 {
                     attributes[nl80211Attr] = attrValue;

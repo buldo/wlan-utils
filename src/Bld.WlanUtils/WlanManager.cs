@@ -1,4 +1,5 @@
 ﻿using Bld.Libnl;
+using Bld.Libnl.Types;
 using Microsoft.Extensions.Logging;
 using NetworkManager.DBus;
 using RunProcessAsTask;
@@ -149,7 +150,10 @@ public class WlanManager
     public async Task<IReadOnlyList<WlanDeviceInfo>> GetWlanDevicesAsync()
     {
         var interfaces = _nlInterface.Nl80211GetInterfaces();
-        return interfaces.Select(i => new WlanDeviceInfo() { Interface = "unknown" }).ToList();
+        return interfaces
+            .Where(iface => iface.Attributes.ContainsKey(Nl80211Attribute.NL80211_ATTR_IFNAME))
+            .Select(i => new WlanDeviceInfo() { NlInterfaceInfo = i})
+            .ToList();
 
         // var dbusInfo = await EnsureDbusConnectedAsync();
         // var devices = await dbusInfo.NetworkManager.GetDevicesAsync();
@@ -199,9 +203,4 @@ public class WlanManager
         Connection Connection,
         NetworkManagerService NetworkManagerService,
         NetworkManager.DBus.NetworkManager NetworkManager);
-}
-
-public class WlanDeviceInfo
-{
-    public required string Interface { get; init; }
 }

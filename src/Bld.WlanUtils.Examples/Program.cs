@@ -10,11 +10,12 @@ internal class Program
             loggingBuilder => loggingBuilder
                 .AddConsole()
                 .SetMinimumLevel(LogLevel.Trace));
+        var logger = loggerFactory.CreateLogger<Program>();
         var manager = new WlanManager(loggerFactory.CreateLogger<WlanManager>());
         var devices = await manager.GetWlanDevicesAsync();
         foreach (var device in devices)
         {
-
+            logger.LogInformation("Device: {Interface}", device.Interface);
         }
         //var deviceName = "wlx00c0caa98097";
         //await manager.TrySwitchToMonitorAsync(deviceName);
