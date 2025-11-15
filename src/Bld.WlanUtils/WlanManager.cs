@@ -174,10 +174,18 @@ public class WlanManager
                 continue;
             }
 
-            ret.Add(new WlanDeviceInfo(phyInfo, iface));
+            var driverName = GetDriverName(phyId);
+
+            ret.Add(new WlanDeviceInfo(phyInfo, iface, driverName));
         }
 
         return ret;
+    }
+
+    private string GetDriverName(uint phyIndex)
+    {
+        var target = File.ResolveLinkTarget($"/sys/class/ieee80211/phy{phyIndex}/device/driver", true);
+        return target!.Name;
     }
 
     // public async Task<IReadOnlyList<WlanDeviceInfo>> GetWlanInterfaces()

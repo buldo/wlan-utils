@@ -19,10 +19,14 @@ internal class Program
             logger.LogInformation(
                 """
                 Device: {Interface}
-                   Monitor: {Monitor}
+                    Driver: {Driver}
+                    Monitor support: {Monitor}
+                    Current mode: {Mode}
                 """,
                 device.InterfaceName,
-                device.SupportedInterfaceTypes?.Contains(Nl80211InterfaceType.NL80211_IFTYPE_MONITOR));
+                device.DriverName,
+                device.SupportedInterfaceTypes?.Contains(Nl80211InterfaceType.NL80211_IFTYPE_MONITOR),
+                device.CurrentInterfaceMode);
         }
         //var deviceName = "wlx00c0caa98097";
         //await manager.TrySwitchToMonitorAsync(deviceName);
