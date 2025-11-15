@@ -18,7 +18,7 @@ public class WlanManager
     public WlanManager(ILogger<WlanManager> logger)
     {
         _logger = logger;
-        _nlInterface = NlInterface.Open();
+        _nlInterface = new NlInterface();
     }
 
     /// <summary>
