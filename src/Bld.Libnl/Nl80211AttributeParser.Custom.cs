@@ -19,6 +19,7 @@ public static partial class Nl80211AttributeParser
         CustomParsers[Nl80211Attribute.NL80211_ATTR_SOFTWARE_IFTYPES] = ParseSupportedIfTypes;
         CustomParsers[Nl80211Attribute.NL80211_ATTR_SUPPORTED_IFTYPES] = ParseSupportedIfTypes;
         CustomParsers[Nl80211Attribute.NL80211_ATTR_WIPHY_BANDS] = ParseWiphyBands;
+        CustomParsers[Nl80211Attribute.NL80211_ATTR_BANDS] = ParseWiphyBands;
     }
 
     private static partial bool HaveCustomParser(Nl80211Attribute attr)
@@ -41,38 +42,25 @@ public static partial class Nl80211AttributeParser
     /// Parse NL80211_ATTR_SUPPORTED_IFTYPES - nested attribute containing flags
     /// Each flag represents a supported interface type (index = interface type value)
     /// </summary>
-    private static unsafe INl80211AttributeValue? ParseSupportedIfTypes(IntPtr nla)
+    private static INl80211AttributeValue? ParseSupportedIfTypes(IntPtr nla)
     {
         if (nla == IntPtr.Zero)
             return null;
 
         var supportedTypes = new HashSet<Nl80211InterfaceType>();
 
-        // Get nested data pointer and length
-        var data = LibNlNative.nla_data(nla);
-        var len = LibNlNative.nla_len(nla);
-
-        if (data == IntPtr.Zero || len <= 0)
-            return Nl80211AttributeValue.FromInterfaceTypes(supportedTypes);
-
         // Iterate through nested attributes
-        var remaining = len;
-        var current = data;
-
-        while (LibNlNative.nla_ok(current, remaining))
+        foreach (var attr in nla.EnumerateNested())
         {
             // Get attribute type (which represents the interface type index)
-            var attrType = LibNlNative.nla_type(current);
+            var attrType = (int)LibNlNative.nla_type(attr);
 
             // The attribute type is the interface type value
             // Flags just indicate presence, so if we see it, it's supported
-            if (Enum.IsDefined(typeof(Nl80211InterfaceType), (int)attrType))
+            if (Enum.IsDefined(typeof(Nl80211InterfaceType), attrType))
             {
-                supportedTypes.Add((Nl80211InterfaceType)(int)attrType);
+                supportedTypes.Add((Nl80211InterfaceType)attrType);
             }
-
-            // Move to next attribute
-            current = LibNlNative.nla_next(current, &remaining);
         }
 
         return Nl80211AttributeValue.FromInterfaceTypes(supportedTypes);
@@ -82,87 +70,63 @@ public static partial class Nl80211AttributeParser
     /// Parse NL80211_ATTR_WIPHY_BANDS - nested array containing band information
     /// Each nested element represents a band (2.4GHz, 5GHz, etc.) with its attributes
     /// </summary>
-    private static unsafe INl80211AttributeValue? ParseWiphyBands(IntPtr nla)
+    private static INl80211AttributeValue? ParseWiphyBands(IntPtr nla)
     {
         if (nla == IntPtr.Zero)
             return null;
 
         var bands = new List<BandInfo>();
 
-        // Get nested data pointer and length
-        var data = LibNlNative.nla_data(nla);
-        var len = LibNlNative.nla_len(nla);
-
-        if (data == IntPtr.Zero || len <= 0)
-            return Nl80211AttributeValue.FromBands(bands);
-
         // Iterate through nested band attributes
-        var remaining = len;
-        var current = data;
-
-        while (LibNlNative.nla_ok(current, remaining))
+        foreach (var bandAttr in nla.EnumerateNested())
         {
             // Get band type (2GHz, 5GHz, etc.) from attribute type
-            var bandType = LibNlNative.nla_type(current);
+            var bandType = (int)LibNlNative.nla_type(bandAttr);
 
-            if (Enum.IsDefined(typeof(Nl80211Band), (int)bandType))
+            // Always add band info, even if we don't recognize the band type
+            // This ensures we don't skip bands that might be valid
+            var bandInfo = new BandInfo
             {
-                var bandInfo = new BandInfo
+                Band = (Nl80211Band)bandType
+            };
+
+            // Parse nested band attributes
+            foreach (var attr in bandAttr.EnumerateNested())
+            {
+                // Get attribute type
+                var attrType = (int)LibNlNative.nla_type(attr);
+
+                if (Enum.IsDefined(typeof(Nl80211BandAttribute), attrType))
                 {
-                    Band = (Nl80211Band)(int)bandType
-                };
+                    var bandAttrType = (Nl80211BandAttribute)attrType;
 
-                // Parse nested band attributes
-                var bandData = LibNlNative.nla_data(current);
-                var bandLen = LibNlNative.nla_len(current);
-
-                if (bandData != IntPtr.Zero && bandLen > 0)
-                {
-                    var bandRemaining = bandLen;
-                    var bandCurrent = bandData;
-
-                    while (LibNlNative.nla_ok(bandCurrent, bandRemaining))
+                    // Parse band attribute based on type
+                    INl80211AttributeValue? attrValue = bandAttrType switch
                     {
-                        var attrType = LibNlNative.nla_type(bandCurrent);
+                        Nl80211BandAttribute.NL80211_BAND_ATTR_FREQS => Nl80211AttributeValue.FromNested(attr),
+                        Nl80211BandAttribute.NL80211_BAND_ATTR_RATES => Nl80211AttributeValue.FromNested(attr),
+                        Nl80211BandAttribute.NL80211_BAND_ATTR_HT_MCS_SET => ParseBinary(attr),
+                        Nl80211BandAttribute.NL80211_BAND_ATTR_HT_CAPA => Nl80211AttributeValue.FromU16(LibNlNative.nla_get_u16(attr)),
+                        Nl80211BandAttribute.NL80211_BAND_ATTR_HT_AMPDU_FACTOR => Nl80211AttributeValue.FromU8(LibNlNative.nla_get_u8(attr)),
+                        Nl80211BandAttribute.NL80211_BAND_ATTR_HT_AMPDU_DENSITY => Nl80211AttributeValue.FromU8(LibNlNative.nla_get_u8(attr)),
+                        Nl80211BandAttribute.NL80211_BAND_ATTR_VHT_MCS_SET => ParseBinary(attr),
+                        Nl80211BandAttribute.NL80211_BAND_ATTR_VHT_CAPA => Nl80211AttributeValue.FromU32(LibNlNative.nla_get_u32(attr)),
+                        Nl80211BandAttribute.NL80211_BAND_ATTR_IFTYPE_DATA => Nl80211AttributeValue.FromNested(attr),
+                        Nl80211BandAttribute.NL80211_BAND_ATTR_EDMG_CHANNELS => Nl80211AttributeValue.FromU8(LibNlNative.nla_get_u8(attr)),
+                        Nl80211BandAttribute.NL80211_BAND_ATTR_EDMG_BW_CONFIG => Nl80211AttributeValue.FromU8(LibNlNative.nla_get_u8(attr)),
+                        Nl80211BandAttribute.NL80211_BAND_ATTR_S1G_MCS_NSS_SET => ParseBinary(attr),
+                        Nl80211BandAttribute.NL80211_BAND_ATTR_S1G_CAPA => ParseBinary(attr),
+                        _ => null
+                    };
 
-                        if (Enum.IsDefined(typeof(Nl80211BandAttribute), (int)attrType))
-                        {
-                            var bandAttr = (Nl80211BandAttribute)(int)attrType;
-
-                            // Parse band attribute based on type
-                            INl80211AttributeValue? attrValue = bandAttr switch
-                            {
-                                Nl80211BandAttribute.NL80211_BAND_ATTR_FREQS => Nl80211AttributeValue.FromNested(bandCurrent),
-                                Nl80211BandAttribute.NL80211_BAND_ATTR_RATES => Nl80211AttributeValue.FromNested(bandCurrent),
-                                Nl80211BandAttribute.NL80211_BAND_ATTR_HT_MCS_SET => ParseBinary(bandCurrent),
-                                Nl80211BandAttribute.NL80211_BAND_ATTR_HT_CAPA => Nl80211AttributeValue.FromU16(LibNlNative.nla_get_u16(bandCurrent)),
-                                Nl80211BandAttribute.NL80211_BAND_ATTR_HT_AMPDU_FACTOR => Nl80211AttributeValue.FromU8(LibNlNative.nla_get_u8(bandCurrent)),
-                                Nl80211BandAttribute.NL80211_BAND_ATTR_HT_AMPDU_DENSITY => Nl80211AttributeValue.FromU8(LibNlNative.nla_get_u8(bandCurrent)),
-                                Nl80211BandAttribute.NL80211_BAND_ATTR_VHT_MCS_SET => ParseBinary(bandCurrent),
-                                Nl80211BandAttribute.NL80211_BAND_ATTR_VHT_CAPA => Nl80211AttributeValue.FromU32(LibNlNative.nla_get_u32(bandCurrent)),
-                                Nl80211BandAttribute.NL80211_BAND_ATTR_IFTYPE_DATA => Nl80211AttributeValue.FromNested(bandCurrent),
-                                Nl80211BandAttribute.NL80211_BAND_ATTR_EDMG_CHANNELS => Nl80211AttributeValue.FromU8(LibNlNative.nla_get_u8(bandCurrent)),
-                                Nl80211BandAttribute.NL80211_BAND_ATTR_EDMG_BW_CONFIG => Nl80211AttributeValue.FromU8(LibNlNative.nla_get_u8(bandCurrent)),
-                                Nl80211BandAttribute.NL80211_BAND_ATTR_S1G_MCS_NSS_SET => ParseBinary(bandCurrent),
-                                Nl80211BandAttribute.NL80211_BAND_ATTR_S1G_CAPA => ParseBinary(bandCurrent),
-                                _ => null
-                            };
-
-                            if (attrValue != null)
-                            {
-                                bandInfo.Attributes[bandAttr] = attrValue;
-                            }
-                        }
-
-                        bandCurrent = LibNlNative.nla_next(bandCurrent, &bandRemaining);
+                    if (attrValue != null)
+                    {
+                        bandInfo.Attributes[bandAttrType] = attrValue;
                     }
                 }
-
-                bands.Add(bandInfo);
             }
 
-            // Move to next band
-            current = LibNlNative.nla_next(current, &remaining);
+            bands.Add(bandInfo);
         }
 
         return Nl80211AttributeValue.FromBands(bands);
