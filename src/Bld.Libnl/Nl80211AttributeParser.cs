@@ -9,12 +9,27 @@ namespace Bld.Libnl;
 public static partial class Nl80211AttributeParser
 {
     /// <summary>
+    /// Check if custom parser exists for the attribute
+    /// </summary>
+    private static partial bool HaveCustomParser(Nl80211Attribute attr);
+
+    /// <summary>
+    /// Parse attribute using custom parser
+    /// </summary>
+    private static partial INl80211AttributeValue? ParseAttributeCustom(Nl80211Attribute attr, IntPtr nla);
+
+    /// <summary>
     /// Parse nl80211 attribute based on its type
     /// </summary>
     public static unsafe INl80211AttributeValue? ParseAttribute(Nl80211Attribute attr, IntPtr nla)
     {
         if (nla == IntPtr.Zero)
             return null;
+
+        if(HaveCustomParser(attr))
+        {
+            return ParseAttributeCustom(attr, nla);
+        }
 
         return attr switch
         {

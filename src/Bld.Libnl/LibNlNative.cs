@@ -109,4 +109,11 @@ public static unsafe partial class LibNlNative
 
     [LibraryImport("libnl-genl-3.so", EntryPoint = "genlmsg_hdr")]
     public static partial IntPtr genlmsg_hdr(IntPtr nlh);
+
+    [LibraryImport("libnl-3.so", EntryPoint = "nla_next")]
+    public static partial IntPtr nla_next(IntPtr nla, int* remaining);
+
+    [LibraryImport("libnl-3.so", EntryPoint = "nla_ok")]
+    [return: MarshalAs(UnmanagedType.Bool)]
+    public static partial bool nla_ok(IntPtr nla, int remaining);
 }

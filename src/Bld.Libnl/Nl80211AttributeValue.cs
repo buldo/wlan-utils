@@ -96,4 +96,28 @@ public static class Nl80211AttributeValueExtensions
         Nl80211AttributeValue<long> s64 => s64.Value is >= 0 and <= uint.MaxValue ? (uint)s64.Value : null,
         _ => null
     };
+
+    /// <summary>
+    /// Extract supported interface types from NL80211_ATTR_SUPPORTED_IFTYPES attribute
+    /// </summary>
+    public static List<Nl80211InterfaceType>? AsSupportedInterfaceTypes(this INl80211AttributeValue attr)
+    {
+        if (attr is not Nl80211AttributeValue<byte[]> typed || typed.Value.Length == 0)
+            return null;
+
+        var result = new List<Nl80211InterfaceType>();
+        var bytes = typed.Value;
+
+        // Each interface type is stored as 4-byte integer
+        for (int i = 0; i + sizeof(int) <= bytes.Length; i += sizeof(int))
+        {
+            var typeValue = BitConverter.ToInt32(bytes, i);
+            if (Enum.IsDefined(typeof(Nl80211InterfaceType), typeValue))
+            {
+                result.Add((Nl80211InterfaceType)typeValue);
+            }
+        }
+
+        return result.Count > 0 ? result : null;
+    }
 }
