@@ -45,14 +45,14 @@ public static partial class Nl80211AttributeParser
         if (nla == IntPtr.Zero)
             return null;
 
-        var supportedTypes = new List<Nl80211InterfaceType>();
+        var supportedTypes = new HashSet<Nl80211InterfaceType>();
 
         // Get nested data pointer and length
         var data = LibNlNative.nla_data(nla);
         var len = LibNlNative.nla_len(nla);
 
         if (data == IntPtr.Zero || len <= 0)
-            return Nl80211AttributeValue.FromBinary(Array.Empty<byte>());
+            return Nl80211AttributeValue.FromInterfaceTypes(supportedTypes);
 
         // Iterate through nested attributes
         var remaining = len;
@@ -74,13 +74,6 @@ public static partial class Nl80211AttributeParser
             current = LibNlNative.nla_next(current, &remaining);
         }
 
-        // Convert list to binary format (as array of integers)
-        var resultBytes = new byte[supportedTypes.Count * sizeof(int)];
-        for (int i = 0; i < supportedTypes.Count; i++)
-        {
-            BitConverter.GetBytes((int)supportedTypes[i]).CopyTo(resultBytes, i * sizeof(int));
-        }
-
-        return Nl80211AttributeValue.FromBinary(resultBytes);
+        return Nl80211AttributeValue.FromInterfaceTypes(supportedTypes);
     }
 }

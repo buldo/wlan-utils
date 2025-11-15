@@ -42,6 +42,7 @@ public static class Nl80211AttributeValue
     public static INl80211AttributeValue FromString(string value) => new Nl80211AttributeValue<string>(NlAttributeType.NLA_NUL_STRING, value);
     public static INl80211AttributeValue FromBinary(byte[] value) => new Nl80211AttributeValue<byte[]>(NlAttributeType.NLA_BINARY, value);
     public static INl80211AttributeValue FromNested(IntPtr value) => new Nl80211AttributeValue<IntPtr>(NlAttributeType.NLA_NESTED, value);
+    public static INl80211AttributeValue FromInterfaceTypes(HashSet<Nl80211InterfaceType> value) => new Nl80211AttributeValue<HashSet<Nl80211InterfaceType>>(NlAttributeType.NLA_NESTED, value);
 }
 
 /// <summary>
@@ -98,26 +99,10 @@ public static class Nl80211AttributeValueExtensions
     };
 
     /// <summary>
-    /// Extract supported interface types from NL80211_ATTR_SUPPORTED_IFTYPES attribute
+    /// Extract interface types from NL80211_ATTR_SUPPORTED_IFTYPES or NL80211_ATTR_SOFTWARE_IFTYPES attribute
     /// </summary>
-    public static List<Nl80211InterfaceType>? AsSupportedInterfaceTypes(this INl80211AttributeValue attr)
+    public static HashSet<Nl80211InterfaceType>? AsInterfaceTypes(this INl80211AttributeValue attr)
     {
-        if (attr is not Nl80211AttributeValue<byte[]> typed || typed.Value.Length == 0)
-            return null;
-
-        var result = new List<Nl80211InterfaceType>();
-        var bytes = typed.Value;
-
-        // Each interface type is stored as 4-byte integer
-        for (int i = 0; i + sizeof(int) <= bytes.Length; i += sizeof(int))
-        {
-            var typeValue = BitConverter.ToInt32(bytes, i);
-            if (Enum.IsDefined(typeof(Nl80211InterfaceType), typeValue))
-            {
-                result.Add((Nl80211InterfaceType)typeValue);
-            }
-        }
-
-        return result.Count > 0 ? result : null;
+        return attr is Nl80211AttributeValue<HashSet<Nl80211InterfaceType>> typed ? typed.Value : null;
     }
 }

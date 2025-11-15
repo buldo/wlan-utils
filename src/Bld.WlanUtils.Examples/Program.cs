@@ -1,4 +1,5 @@
-﻿using Microsoft.Extensions.Logging;
+﻿using Bld.Libnl.Types;
+using Microsoft.Extensions.Logging;
 
 namespace Bld.WlanUtils.Examples;
 
@@ -15,7 +16,13 @@ internal class Program
         var devices = manager.GetWlanInterfaces();
         foreach (var device in devices)
         {
-            logger.LogInformation("Device: {Interface}", device.InterfaceName);
+            logger.LogInformation(
+                """
+                Device: {Interface}
+                   Monitor: {Monitor}
+                """,
+                device.InterfaceName,
+                device.SupportedInterfaceTypes?.Contains(Nl80211InterfaceType.NL80211_IFTYPE_MONITOR));
         }
         //var deviceName = "wlx00c0caa98097";
         //await manager.TrySwitchToMonitorAsync(deviceName);
