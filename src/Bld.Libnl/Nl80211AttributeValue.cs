@@ -43,6 +43,7 @@ public static class Nl80211AttributeValue
     public static INl80211AttributeValue FromBinary(byte[] value) => new Nl80211AttributeValue<byte[]>(NlAttributeType.NLA_BINARY, value);
     public static INl80211AttributeValue FromNested(IntPtr value) => new Nl80211AttributeValue<IntPtr>(NlAttributeType.NLA_NESTED, value);
     public static INl80211AttributeValue FromInterfaceTypes(HashSet<Nl80211InterfaceType> value) => new Nl80211AttributeValue<HashSet<Nl80211InterfaceType>>(NlAttributeType.NLA_NESTED, value);
+    public static INl80211AttributeValue FromBands(List<BandInfo> value) => new Nl80211AttributeValue<List<BandInfo>>(NlAttributeType.NLA_NESTED, value);
 }
 
 /// <summary>
@@ -104,5 +105,13 @@ public static class Nl80211AttributeValueExtensions
     public static HashSet<Nl80211InterfaceType>? AsInterfaceTypes(this INl80211AttributeValue attr)
     {
         return attr is Nl80211AttributeValue<HashSet<Nl80211InterfaceType>> typed ? typed.Value : null;
+    }
+
+    /// <summary>
+    /// Extract band information from NL80211_ATTR_WIPHY_BANDS attribute
+    /// </summary>
+    public static List<BandInfo>? AsBands(this INl80211AttributeValue attr)
+    {
+        return attr is Nl80211AttributeValue<List<BandInfo>> typed ? typed.Value : null;
     }
 }
