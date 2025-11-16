@@ -44,6 +44,8 @@ public static class Nl80211AttributeValue
     public static INl80211AttributeValue FromNested(IntPtr value) => new Nl80211AttributeValue<IntPtr>(NlAttributeType.NLA_NESTED, value);
     public static INl80211AttributeValue FromInterfaceTypes(HashSet<Nl80211InterfaceType> value) => new Nl80211AttributeValue<HashSet<Nl80211InterfaceType>>(NlAttributeType.NLA_NESTED, value);
     public static INl80211AttributeValue FromBands(List<BandInfo> value) => new Nl80211AttributeValue<List<BandInfo>>(NlAttributeType.NLA_NESTED, value);
+    public static INl80211AttributeValue FromFrequencies(List<FrequencyInfo> value) => new Nl80211AttributeValue<List<FrequencyInfo>>(NlAttributeType.NLA_NESTED, value);
+    public static INl80211AttributeValue FromBitrates(List<BitrateInfo> value) => new Nl80211AttributeValue<List<BitrateInfo>>(NlAttributeType.NLA_NESTED, value);
 }
 
 /// <summary>
@@ -113,5 +115,15 @@ public static class Nl80211AttributeValueExtensions
     public static List<BandInfo>? AsBands(this INl80211AttributeValue attr)
     {
         return attr is Nl80211AttributeValue<List<BandInfo>> typed ? typed.Value : null;
+    }
+
+    public static List<FrequencyInfo>? AsFrequencies(this INl80211AttributeValue attr)
+    {
+        return attr is Nl80211AttributeValue<List<FrequencyInfo>> typed ? typed.Value : null;
+    }
+
+    public static List<BitrateInfo>? AsBitrates(this INl80211AttributeValue attr)
+    {
+        return attr is Nl80211AttributeValue<List<BitrateInfo>> typed ? typed.Value : null;
     }
 }

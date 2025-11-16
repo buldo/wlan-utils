@@ -66,10 +66,6 @@ public static partial class Nl80211AttributeParser
         return Nl80211AttributeValue.FromInterfaceTypes(supportedTypes);
     }
 
-    /// <summary>
-    /// Parse NL80211_ATTR_WIPHY_BANDS - nested array containing band information
-    /// Each nested element represents a band (2.4GHz, 5GHz, etc.) with its attributes
-    /// </summary>
     private static INl80211AttributeValue? ParseWiphyBands(IntPtr nla)
     {
         if (nla == IntPtr.Zero)
@@ -103,14 +99,18 @@ public static partial class Nl80211AttributeParser
                     // Parse band attribute based on type
                     INl80211AttributeValue? attrValue = bandAttrType switch
                     {
-                        Nl80211BandAttribute.NL80211_BAND_ATTR_FREQS => Nl80211AttributeValue.FromNested(attr),
-                        Nl80211BandAttribute.NL80211_BAND_ATTR_RATES => Nl80211AttributeValue.FromNested(attr),
+                        // Parse into managed models instead of IntPtr
+                        Nl80211BandAttribute.NL80211_BAND_ATTR_FREQS =>
+                            Nl80211AttributeValue.FromFrequencies(ParseFrequencies(attr)),
+                        Nl80211BandAttribute.NL80211_BAND_ATTR_RATES =>
+                            Nl80211AttributeValue.FromBitrates(ParseBitrates(attr)),
                         Nl80211BandAttribute.NL80211_BAND_ATTR_HT_MCS_SET => ParseBinary(attr),
                         Nl80211BandAttribute.NL80211_BAND_ATTR_HT_CAPA => Nl80211AttributeValue.FromU16(LibNlNative.nla_get_u16(attr)),
                         Nl80211BandAttribute.NL80211_BAND_ATTR_HT_AMPDU_FACTOR => Nl80211AttributeValue.FromU8(LibNlNative.nla_get_u8(attr)),
                         Nl80211BandAttribute.NL80211_BAND_ATTR_HT_AMPDU_DENSITY => Nl80211AttributeValue.FromU8(LibNlNative.nla_get_u8(attr)),
                         Nl80211BandAttribute.NL80211_BAND_ATTR_VHT_MCS_SET => ParseBinary(attr),
                         Nl80211BandAttribute.NL80211_BAND_ATTR_VHT_CAPA => Nl80211AttributeValue.FromU32(LibNlNative.nla_get_u32(attr)),
+                        // IFTYPE_DATA is complex (HE/EHT), keep nested for now; can be modeled later
                         Nl80211BandAttribute.NL80211_BAND_ATTR_IFTYPE_DATA => Nl80211AttributeValue.FromNested(attr),
                         Nl80211BandAttribute.NL80211_BAND_ATTR_EDMG_CHANNELS => Nl80211AttributeValue.FromU8(LibNlNative.nla_get_u8(attr)),
                         Nl80211BandAttribute.NL80211_BAND_ATTR_EDMG_BW_CONFIG => Nl80211AttributeValue.FromU8(LibNlNative.nla_get_u8(attr)),
@@ -130,5 +130,96 @@ public static partial class Nl80211AttributeParser
         }
 
         return Nl80211AttributeValue.FromBands(bands);
+    }
+
+    private static List<FrequencyInfo> ParseFrequencies(IntPtr nla)
+    {
+        var result = new List<FrequencyInfo>();
+
+        // Each nested attribute here is a frequency entry with its own nested attributes
+        foreach (var nlFreq in nla.EnumerateNested())
+        {
+            var info = new FrequencyInfo();
+
+            foreach (var sub in nlFreq.EnumerateNested())
+            {
+                var t = (int)LibNlNative.nla_type(sub);
+
+                if (!Enum.IsDefined(typeof(Nl80211FrequencyAttribute), t))
+                    continue;
+
+                switch ((Nl80211FrequencyAttribute)t)
+                {
+                    case Nl80211FrequencyAttribute.NL80211_FREQUENCY_ATTR_FREQ:
+                        info.FrequencyMHz = LibNlNative.nla_get_u32(sub);
+                        break;
+                    case Nl80211FrequencyAttribute.NL80211_FREQUENCY_ATTR_OFFSET:
+                        info.OffsetKHz = LibNlNative.nla_get_u32(sub);
+                        break;
+                    case Nl80211FrequencyAttribute.NL80211_FREQUENCY_ATTR_MAX_TX_POWER:
+                        // Convert mBm (0.01 dBm units) to dBm
+                        info.MaxTxPowerDbm = 0.01 * LibNlNative.nla_get_u32(sub);
+                        break;
+                    case Nl80211FrequencyAttribute.NL80211_FREQUENCY_ATTR_DISABLED:
+                        info.Disabled = true;
+                        break;
+                    case Nl80211FrequencyAttribute.NL80211_FREQUENCY_ATTR_NO_IR:
+                        info.NoIR = true;
+                        break;
+                    case Nl80211FrequencyAttribute.NL80211_FREQUENCY_ATTR_RADAR:
+                        info.RadarDetection = true;
+                        break;
+                    default:
+                        // Ignore other attributes for now
+                        break;
+                }
+            }
+
+            // Only add valid entries that have a frequency set
+            if (info.FrequencyMHz != 0)
+            {
+                result.Add(info);
+            }
+        }
+
+        return result;
+    }
+
+    private static List<BitrateInfo> ParseBitrates(IntPtr nla)
+    {
+        var result = new List<BitrateInfo>();
+
+        foreach (var nlRate in nla.EnumerateNested())
+        {
+            var info = new BitrateInfo();
+
+            foreach (var sub in nlRate.EnumerateNested())
+            {
+                var t = (int)LibNlNative.nla_type(sub);
+
+                if (!Enum.IsDefined(typeof(Nl80211BitrateAttribute), t))
+                    continue;
+
+                switch ((Nl80211BitrateAttribute)t)
+                {
+                    case Nl80211BitrateAttribute.NL80211_BITRATE_ATTR_RATE:
+                        // Stored as 100 kbps units -> 0.1 Mbps per unit
+                        info.Mbps = 0.1 * LibNlNative.nla_get_u32(sub);
+                        break;
+                    case Nl80211BitrateAttribute.NL80211_BITRATE_ATTR_2GHZ_SHORTPREAMBLE:
+                        info.ShortPreamble2GHz = true;
+                        break;
+                    default:
+                        break;
+                }
+            }
+
+            if (info.Mbps > 0)
+            {
+                result.Add(info);
+            }
+        }
+
+        return result;
     }
 }

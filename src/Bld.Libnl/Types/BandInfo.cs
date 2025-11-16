@@ -14,16 +14,16 @@ public sealed class BandInfo
     public Dictionary<Nl80211BandAttribute, INl80211AttributeValue> Attributes { get; init; } = new();
 
     /// <summary>
-    /// Get frequencies nested attribute (NL80211_BAND_ATTR_FREQS)
+    /// Get frequencies nested attribute (NL80211_BAND_ATTR_FREQS) as managed model list
     /// </summary>
-    public INl80211AttributeValue? Frequencies =>
-        Attributes.TryGetValue(Nl80211BandAttribute.NL80211_BAND_ATTR_FREQS, out var freq) ? freq : null;
+    public List<FrequencyInfo>? Frequencies =>
+        Attributes.TryGetValue(Nl80211BandAttribute.NL80211_BAND_ATTR_FREQS, out var freq) ? freq.AsFrequencies() : null;
 
     /// <summary>
-    /// Get rates nested attribute (NL80211_BAND_ATTR_RATES)
+    /// Get rates nested attribute (NL80211_BAND_ATTR_RATES) as managed model list
     /// </summary>
-    public INl80211AttributeValue? Rates =>
-        Attributes.TryGetValue(Nl80211BandAttribute.NL80211_BAND_ATTR_RATES, out var rates) ? rates : null;
+    public List<BitrateInfo>? Rates =>
+        Attributes.TryGetValue(Nl80211BandAttribute.NL80211_BAND_ATTR_RATES, out var rates) ? rates.AsBitrates() : null;
 
     /// <summary>
     /// Get HT capabilities (NL80211_BAND_ATTR_HT_CAPA)
