@@ -1,6 +1,7 @@
 using System.Collections.Concurrent;
 using System.Runtime.InteropServices;
 using Bld.Libnl.Types;
+using Bld.Libnl;
 
 namespace Bld.Libnl.NlCommands;
 
@@ -106,8 +107,16 @@ internal abstract class NlDumpCommandBase : NlCommandBase<List<Dictionary<Nl8021
 
             foreach (var kvp in attributes)
             {
-                // TODO: Specific merger for BAND. Or maybe for other attributes?
-                storage[kvp.Key] = kvp.Value;
+                    // Merge strategy: for bands we need to accumulate data across split messages,
+                    // for other attributes the last value wins (as before).
+                    if (IsBandAttribute(kvp.Key) && storage.TryGetValue(kvp.Key, out var existingVal))
+                    {
+                        storage[kvp.Key] = MergeBandAttributes(existingVal, kvp.Value);
+                    }
+                    else
+                    {
+                        storage[kvp.Key] = kvp.Value;
+                    }
             }
 
             return (int)NetlinkCallbackAction.NL_SKIP;
@@ -116,5 +125,131 @@ internal abstract class NlDumpCommandBase : NlCommandBase<List<Dictionary<Nl8021
         {
             return (int)NetlinkCallbackAction.NL_SKIP;
         }
+    }
+
+    private static bool IsBandAttribute(Nl80211Attribute attribute)
+    {
+        return attribute == Nl80211Attribute.NL80211_ATTR_WIPHY_BANDS
+               || attribute == Nl80211Attribute.NL80211_ATTR_BANDS;
+    }
+
+    private static INl80211AttributeValue MergeBandAttributes(INl80211AttributeValue existing, INl80211AttributeValue incoming)
+    {
+        var existingBands = existing.AsBands() ?? new List<Bld.Libnl.Types.BandInfo>();
+        var incomingBands = incoming.AsBands() ?? new List<Bld.Libnl.Types.BandInfo>();
+
+        // Result map by band id
+        var result = new Dictionary<Nl80211Band, BandInfo>();
+
+        // Helper to get/create target band entry
+        BandInfo Ensure(Nl80211Band band)
+        {
+            if (!result.TryGetValue(band, out var b))
+            {
+                b = new BandInfo { Band = band, Attributes = new Dictionary<Nl80211BandAttribute, INl80211AttributeValue>() };
+                result[band] = b;
+            }
+            return b;
+        }
+
+        // Seed with existing
+        foreach (var b in existingBands)
+        {
+            var target = Ensure(b.Band);
+            foreach (var kv in b.Attributes)
+            {
+                target.Attributes[kv.Key] = kv.Value;
+            }
+        }
+
+        // Merge incoming
+        foreach (var b in incomingBands)
+        {
+            var target = Ensure(b.Band);
+
+            foreach (var kv in b.Attributes)
+            {
+                var attr = kv.Key;
+                var val = kv.Value;
+
+                if (attr == Nl80211BandAttribute.NL80211_BAND_ATTR_FREQS)
+                {
+                    // Merge frequency lists de-duplicating by (FrequencyMHz, OffsetKHz)
+                    var existingFreqs = target.Attributes.TryGetValue(attr, out var exVal)
+                        ? (exVal.AsFrequencies() ?? new List<FrequencyInfo>())
+                        : new List<FrequencyInfo>();
+                    var incomingFreqs = val.AsFrequencies() ?? new List<FrequencyInfo>();
+
+                    var map = new Dictionary<(uint freq, uint? offset), FrequencyInfo>();
+                    foreach (var f in existingFreqs)
+                    {
+                        map[(f.FrequencyMHz, f.OffsetKHz)] = f;
+                    }
+
+                    foreach (var f in incomingFreqs)
+                    {
+                        var key = (f.FrequencyMHz, f.OffsetKHz);
+                        if (map.TryGetValue(key, out var existingF))
+                        {
+                            // Combine flags and max power conservatively
+                            existingF.Disabled |= f.Disabled;
+                            existingF.NoIR |= f.NoIR;
+                            existingF.RadarDetection |= f.RadarDetection;
+                            if (f.MaxTxPowerDbm.HasValue)
+                            {
+                                if (!existingF.MaxTxPowerDbm.HasValue)
+                                    existingF.MaxTxPowerDbm = f.MaxTxPowerDbm;
+                                else
+                                    existingF.MaxTxPowerDbm = Math.Max(existingF.MaxTxPowerDbm.Value, f.MaxTxPowerDbm.Value);
+                            }
+                        }
+                        else
+                        {
+                            map[key] = f;
+                        }
+                    }
+
+                    target.Attributes[attr] = Nl80211AttributeValue.FromFrequencies(map.Values.ToList());
+                }
+                else if (attr == Nl80211BandAttribute.NL80211_BAND_ATTR_RATES)
+                {
+                    // Merge bitrate lists by Mbps
+                    var existingRates = target.Attributes.TryGetValue(attr, out var exVal)
+                        ? (exVal.AsBitrates() ?? new List<BitrateInfo>())
+                        : new List<BitrateInfo>();
+                    var incomingRates = val.AsBitrates() ?? new List<BitrateInfo>();
+
+                    var map = new Dictionary<double, BitrateInfo>();
+                    foreach (var r in existingRates)
+                    {
+                        map[r.Mbps] = r;
+                    }
+                    foreach (var r in incomingRates)
+                    {
+                        if (map.TryGetValue(r.Mbps, out var existingR))
+                        {
+                            existingR.ShortPreamble2GHz |= r.ShortPreamble2GHz;
+                        }
+                        else
+                        {
+                            map[r.Mbps] = r;
+                        }
+                    }
+
+                    target.Attributes[attr] = Nl80211AttributeValue.FromBitrates(map.Values.ToList());
+                }
+                else
+                {
+                    // For scalar or blob attributes, prefer existing when present; otherwise take new
+                    if (!target.Attributes.ContainsKey(attr))
+                    {
+                        target.Attributes[attr] = val;
+                    }
+                }
+            }
+        }
+
+        var merged = result.Values.ToList();
+        return Nl80211AttributeValue.FromBands(merged);
     }
 }
