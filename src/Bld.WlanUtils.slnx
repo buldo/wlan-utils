@@ -1,0 +1,10 @@
+<Solution>
+  <Folder Name="/Solution Items/">
+    <File Path="../README.md" />
+    <File Path=".aiassistant/rules/Interop.md" />
+  </Folder>
+  <Project Path="Bld.Libnl.Generator/Bld.Libnl.Generator.csproj" />
+  <Project Path="Bld.Libnl/Bld.Libnl.csproj" />
+  <Project Path="Bld.WlanUtils.Examples/Bld.WlanUtils.Examples.csproj" />
+  <Project Path="Bld.WlanUtils/Bld.WlanUtils.csproj" />
+</Solution>
