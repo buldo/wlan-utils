@@ -106,6 +106,7 @@ internal abstract class NlDumpCommandBase : NlCommandBase<List<Dictionary<Nl8021
 
             foreach (var kvp in attributes)
             {
+                // TODO: Specific merger for BAND. Or maybe for other attributes?
                 storage[kvp.Key] = kvp.Value;
             }
 
