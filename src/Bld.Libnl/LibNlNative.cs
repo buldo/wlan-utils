@@ -45,6 +45,9 @@ public static unsafe partial class LibNlNative
     [LibraryImport("libnl-3.so", EntryPoint = "nla_put_u32")]
     public static partial int nla_put_u32(NlMsg msg, int attrtype, uint value);
 
+    [LibraryImport("libnl-3.so", EntryPoint = "nla_put_flag")]
+    public static partial int nla_put_flag(NlMsg msg, int attrtype);
+
     // Callback handling
     [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
     public delegate int NlRecvmsgCallback(IntPtr msg, IntPtr arg);

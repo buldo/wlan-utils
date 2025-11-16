@@ -19,14 +19,14 @@ public class NlInterface
 
     public List<Dictionary<Nl80211Attribute, INl80211AttributeValue>> DumpWiPhy()
     {
-        using var command = new DumpWiPhyComman();
+        using var command = new DumpWiPhyCommand(_isSplitDumpSupperted);
         var result = command.Run();
         return result;
     }
 
     public List<Dictionary<Nl80211Attribute, INl80211AttributeValue>> DumpInterface()
     {
-        using var command = new DumpInterfaceCommand();
+        using var command = new DumpInterfaceCommand(_isSplitDumpSupperted);
         var result = command.Run();
         return result;
     }
