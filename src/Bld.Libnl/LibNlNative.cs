@@ -22,6 +22,9 @@ public static unsafe partial class LibNlNative
     [LibraryImport("libnl-3.so", EntryPoint = "nl_send_auto")]
     public static partial int nl_send_auto(NlSock sock, NlMsg msg);
 
+    [LibraryImport("libnl-3.so", EntryPoint = "nl_send_auto_complete")]
+    public static partial int nl_send_auto_complete(NlSock sock, NlMsg msg);
+
     // Netlink message allocation and deallocation
     [LibraryImport("libnl-3.so", EntryPoint = "nlmsg_alloc")]
     public static partial NlMsg nlmsg_alloc();
@@ -47,6 +50,13 @@ public static unsafe partial class LibNlNative
 
     [LibraryImport("libnl-3.so", EntryPoint = "nla_put_flag")]
     public static partial int nla_put_flag(NlMsg msg, int attrtype);
+
+    // Nested attributes helpers
+    [LibraryImport("libnl-3.so", EntryPoint = "nla_nest_start")]
+    public static partial IntPtr nla_nest_start(NlMsg msg, int attrtype);
+
+    [LibraryImport("libnl-3.so", EntryPoint = "nla_nest_end")]
+    public static partial void nla_nest_end(NlMsg msg, IntPtr start);
 
     // Callback handling
     [UnmanagedFunctionPointer(CallingConvention.Cdecl)]

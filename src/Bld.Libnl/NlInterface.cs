@@ -31,4 +31,9 @@ public class NlInterface
         return result;
     }
 
+    public void SetInterfaceType(uint interfaceIndex, Nl80211InterfaceType type)
+    {
+        using var command = new SetInterfaceTypeCommand(interfaceIndex, type);
+        command.Run();
+    }
 }
