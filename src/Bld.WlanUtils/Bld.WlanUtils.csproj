@@ -24,6 +24,7 @@ Based on OpenHD code.</Description>
 
   <ItemGroup>
     <ProjectReference Include="..\Bld.Libnl\Bld.Libnl.csproj" />
+    <ProjectReference Include="..\Bld.NetworkManager\Bld.NetworkManager.csproj" />
   </ItemGroup>
 
 </Project>

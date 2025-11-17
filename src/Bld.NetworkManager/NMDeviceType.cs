@@ -1,5 +1,5 @@
 // ReSharper disable once CheckNamespace
-namespace NetworkManager.DBus;
+namespace Bld.NetworkManager;
 
 public enum NMDeviceType : uint
 {

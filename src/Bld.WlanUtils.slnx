@@ -5,6 +5,8 @@
   </Folder>
   <Project Path="Bld.Libnl.Generator/Bld.Libnl.Generator.csproj" />
   <Project Path="Bld.Libnl/Bld.Libnl.csproj" />
+  <Project Path="Bld.NetworkManager/Bld.NetworkManager.csproj" />
   <Project Path="Bld.WlanUtils.Examples/Bld.WlanUtils.Examples.csproj" />
+  <Project Path="Bld.WlanUtils.SetFirstRtlToMonitorExample/Bld.WlanUtils.SetFirstRtlToMonitorExample.csproj" />
   <Project Path="Bld.WlanUtils/Bld.WlanUtils.csproj" />
 </Solution>

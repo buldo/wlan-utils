@@ -1,10 +1,11 @@
-namespace NetworkManager.DBus
+namespace Bld.NetworkManager
 {
     using System;
     using Tmds.DBus.Protocol;
     using System.Collections.Generic;
     using System.Threading.Tasks;
-    partial class ObjectManager : NetworkManagerObject
+
+    public partial class ObjectManager : NetworkManagerObject
     {
         private const string __Interface = "org.freedesktop.DBus.ObjectManager";
         public ObjectManager(NetworkManagerService service, ObjectPath path) : base(service, path)
@@ -28,7 +29,8 @@ namespace NetworkManager.DBus
         public ValueTask<IDisposable> WatchInterfacesRemovedAsync(Action<Exception?, (ObjectPath ObjectPath, string[] Interfaces)> handler, bool emitOnCapturedContext = true, ObserverFlags flags = ObserverFlags.None)
             => base.WatchSignalAsync(Service.Destination, __Interface, Path, "InterfacesRemoved", (Message m, object? s) => ReadMessage_oas(m, (NetworkManagerObject)s!), handler, emitOnCapturedContext, flags);
     }
-    record NetworkManagerProperties
+
+    public record NetworkManagerProperties
     {
         public ObjectPath[] Devices { get; set; } = default!;
         public ObjectPath[] AllDevices { get; set; } = default!;
@@ -57,7 +59,8 @@ namespace NetworkManager.DBus
         public string ConnectivityCheckUri { get; set; } = default!;
         public Dictionary<string, VariantValue> GlobalDnsConfiguration { get; set; } = default!;
     }
-    partial class NetworkManager : NetworkManagerObject
+
+    public partial class NetworkManager : NetworkManagerObject
     {
         private const string __Interface = "org.freedesktop.NetworkManager";
         public NetworkManager(NetworkManagerService service, ObjectPath path) : base(service, path)
@@ -727,13 +730,15 @@ namespace NetworkManager.DBus
             return props;
         }
     }
-    record SettingsProperties
+
+    public record SettingsProperties
     {
         public ObjectPath[] Connections { get; set; } = default!;
         public string Hostname { get; set; } = default!;
         public bool CanModify { get; set; } = default!;
     }
-    partial class Settings : NetworkManagerObject
+
+    public partial class Settings : NetworkManagerObject
     {
         private const string __Interface = "org.freedesktop.NetworkManager.Settings";
         public Settings(NetworkManagerService service, ObjectPath path) : base(service, path)
@@ -943,14 +948,16 @@ namespace NetworkManager.DBus
             return props;
         }
     }
-    record ConnectionProperties
+
+    public record ConnectionProperties
     {
         public bool Unsaved { get; set; } = default!;
         public uint Flags { get; set; } = default!;
         public string Filename { get; set; } = default!;
         public ulong VersionId { get; set; } = default!;
     }
-    partial class Connection : NetworkManagerObject
+
+    public partial class Connection : NetworkManagerObject
     {
         private const string __Interface = "org.freedesktop.NetworkManager.Settings.Connection";
         public Connection(NetworkManagerService service, ObjectPath path) : base(service, path)
@@ -1164,7 +1171,8 @@ namespace NetworkManager.DBus
             return props;
         }
     }
-    record IP6ConfigProperties
+
+    public record IP6ConfigProperties
     {
         public (byte[], uint, byte[])[] Addresses { get; set; } = default!;
         public Dictionary<string, VariantValue>[] AddressData { get; set; } = default!;
@@ -1177,7 +1185,8 @@ namespace NetworkManager.DBus
         public string[] DnsOptions { get; set; } = default!;
         public int DnsPriority { get; set; } = default!;
     }
-    partial class IP6Config : NetworkManagerObject
+
+    public partial class IP6Config : NetworkManagerObject
     {
         private const string __Interface = "org.freedesktop.NetworkManager.IP6Config";
         public IP6Config(NetworkManagerService service, ObjectPath path) : base(service, path)
@@ -1313,7 +1322,8 @@ namespace NetworkManager.DBus
             return props;
         }
     }
-    record AccessPointProperties
+
+    public record AccessPointProperties
     {
         public uint Flags { get; set; } = default!;
         public uint WpaFlags { get; set; } = default!;
@@ -1327,7 +1337,8 @@ namespace NetworkManager.DBus
         public byte Strength { get; set; } = default!;
         public int LastSeen { get; set; } = default!;
     }
-    partial class AccessPoint : NetworkManagerObject
+
+    public partial class AccessPoint : NetworkManagerObject
     {
         private const string __Interface = "org.freedesktop.NetworkManager.AccessPoint";
         public AccessPoint(NetworkManagerService service, ObjectPath path) : base(service, path)
@@ -1471,13 +1482,15 @@ namespace NetworkManager.DBus
             return props;
         }
     }
-    record StatisticsProperties
+
+    public record StatisticsProperties
     {
         public uint RefreshRateMs { get; set; } = default!;
         public ulong TxBytes { get; set; } = default!;
         public ulong RxBytes { get; set; } = default!;
     }
-    partial class Statistics : NetworkManagerObject
+
+    public partial class Statistics : NetworkManagerObject
     {
         private const string __Interface = "org.freedesktop.NetworkManager.Device.Statistics";
         public Statistics(NetworkManagerService service, ObjectPath path) : base(service, path)
@@ -1576,7 +1589,8 @@ namespace NetworkManager.DBus
             return props;
         }
     }
-    record WirelessProperties
+
+    public record WirelessProperties
     {
         public string HwAddress { get; set; } = default!;
         public string PermHwAddress { get; set; } = default!;
@@ -1587,7 +1601,8 @@ namespace NetworkManager.DBus
         public uint WirelessCapabilities { get; set; } = default!;
         public long LastScan { get; set; } = default!;
     }
-    partial class Wireless : NetworkManagerObject
+
+    public partial class Wireless : NetworkManagerObject
     {
         private const string __Interface = "org.freedesktop.NetworkManager.Device.Wireless";
         public Wireless(NetworkManagerService service, ObjectPath path) : base(service, path)
@@ -1755,7 +1770,8 @@ namespace NetworkManager.DBus
             return props;
         }
     }
-    record DeviceProperties
+
+    public record DeviceProperties
     {
         public string Udi { get; set; } = default!;
         public string Path { get; set; } = default!;
@@ -1790,7 +1806,8 @@ namespace NetworkManager.DBus
         public string HwAddress { get; set; } = default!;
         public ObjectPath[] Ports { get; set; } = default!;
     }
-    partial class Device : NetworkManagerObject
+
+    public partial class Device : NetworkManagerObject
     {
         private const string __Interface = "org.freedesktop.NetworkManager.Device";
         public Device(NetworkManagerService service, ObjectPath path) : base(service, path)
@@ -2204,12 +2221,14 @@ namespace NetworkManager.DBus
             return props;
         }
     }
-    record WifiP2PProperties
+
+    public record WifiP2PProperties
     {
         public string HwAddress { get; set; } = default!;
         public ObjectPath[] Peers { get; set; } = default!;
     }
-    partial class WifiP2P : NetworkManagerObject
+
+    public partial class WifiP2P : NetworkManagerObject
     {
         private const string __Interface = "org.freedesktop.NetworkManager.Device.WifiP2P";
         public WifiP2P(NetworkManagerService service, ObjectPath path) : base(service, path)
@@ -2315,19 +2334,22 @@ namespace NetworkManager.DBus
             return props;
         }
     }
-    partial class Loopback : NetworkManagerObject
+
+    public partial class Loopback : NetworkManagerObject
     {
         private const string __Interface = "org.freedesktop.NetworkManager.Device.Loopback";
         public Loopback(NetworkManagerService service, ObjectPath path) : base(service, path)
         { }
     }
-    record WireGuardProperties
+
+    public record WireGuardProperties
     {
         public byte[] PublicKey { get; set; } = default!;
         public ushort ListenPort { get; set; } = default!;
         public uint FwMark { get; set; } = default!;
     }
-    partial class WireGuard : NetworkManagerObject
+
+    public partial class WireGuard : NetworkManagerObject
     {
         private const string __Interface = "org.freedesktop.NetworkManager.Device.WireGuard";
         public WireGuard(NetworkManagerService service, ObjectPath path) : base(service, path)
@@ -2407,7 +2429,7 @@ namespace NetworkManager.DBus
             return props;
         }
     }
-    record WiredProperties
+    public record WiredProperties
     {
         public string HwAddress { get; set; } = default!;
         public string PermHwAddress { get; set; } = default!;
@@ -2415,7 +2437,8 @@ namespace NetworkManager.DBus
         public string[] S390Subchannels { get; set; } = default!;
         public bool Carrier { get; set; } = default!;
     }
-    partial class Wired : NetworkManagerObject
+
+    public partial class Wired : NetworkManagerObject
     {
         private const string __Interface = "org.freedesktop.NetworkManager.Device.Wired";
         public Wired(NetworkManagerService service, ObjectPath path) : base(service, path)
@@ -2511,11 +2534,13 @@ namespace NetworkManager.DBus
             return props;
         }
     }
-    record DHCP4ConfigProperties
+
+    public record DHCP4ConfigProperties
     {
         public Dictionary<string, VariantValue> Options { get; set; } = default!;
     }
-    partial class DHCP4Config : NetworkManagerObject
+
+    public partial class DHCP4Config : NetworkManagerObject
     {
         private const string __Interface = "org.freedesktop.NetworkManager.DHCP4Config";
         public DHCP4Config(NetworkManagerService service, ObjectPath path) : base(service, path)
@@ -2579,13 +2604,15 @@ namespace NetworkManager.DBus
             return props;
         }
     }
-    record DnsManagerProperties
+
+    public record DnsManagerProperties
     {
         public string Mode { get; set; } = default!;
         public string RcManager { get; set; } = default!;
         public Dictionary<string, VariantValue>[] Configuration { get; set; } = default!;
     }
-    partial class DnsManager : NetworkManagerObject
+
+    public partial class DnsManager : NetworkManagerObject
     {
         private const string __Interface = "org.freedesktop.NetworkManager.DnsManager";
         public DnsManager(NetworkManagerService service, ObjectPath path) : base(service, path)
@@ -2665,7 +2692,8 @@ namespace NetworkManager.DBus
             return props;
         }
     }
-    record ActiveProperties
+
+    public record ActiveProperties
     {
         public ObjectPath Connection { get; set; } = default!;
         public ObjectPath SpecificObject { get; set; } = default!;
@@ -2685,7 +2713,8 @@ namespace NetworkManager.DBus
         public ObjectPath Controller { get; set; } = default!;
         public ObjectPath Master { get; set; } = default!;
     }
-    partial class Active : NetworkManagerObject
+
+    public partial class Active : NetworkManagerObject
     {
         private const string __Interface = "org.freedesktop.NetworkManager.Connection.Active";
         public Active(NetworkManagerService service, ObjectPath path) : base(service, path)
@@ -2879,7 +2908,8 @@ namespace NetworkManager.DBus
             return props;
         }
     }
-    record IP4ConfigProperties
+
+    public record IP4ConfigProperties
     {
         public uint[][] Addresses { get; set; } = default!;
         public Dictionary<string, VariantValue>[] AddressData { get; set; } = default!;
@@ -2895,7 +2925,8 @@ namespace NetworkManager.DBus
         public string[] WinsServerData { get; set; } = default!;
         public uint[] WinsServers { get; set; } = default!;
     }
-    partial class IP4Config : NetworkManagerObject
+
+    public partial class IP4Config : NetworkManagerObject
     {
         private const string __Interface = "org.freedesktop.NetworkManager.IP4Config";
         public IP4Config(NetworkManagerService service, ObjectPath path) : base(service, path)
@@ -3055,7 +3086,8 @@ namespace NetworkManager.DBus
             return props;
         }
     }
-    partial class AgentManager : NetworkManagerObject
+
+    public partial class AgentManager : NetworkManagerObject
     {
         private const string __Interface = "org.freedesktop.NetworkManager.AgentManager";
         public AgentManager(NetworkManagerService service, ObjectPath path) : base(service, path)
@@ -3108,7 +3140,7 @@ namespace NetworkManager.DBus
             }
         }
     }
-    partial class NetworkManagerService
+    public partial class NetworkManagerService
     {
         public Tmds.DBus.Protocol.Connection Connection { get; }
         public string Destination { get; }
@@ -3133,7 +3165,7 @@ namespace NetworkManager.DBus
         public IP4Config CreateIP4Config(ObjectPath path) => new IP4Config(this, path);
         public AgentManager CreateAgentManager(ObjectPath path) => new AgentManager(this, path);
     }
-    class NetworkManagerObject
+    public class NetworkManagerObject
     {
         public NetworkManagerService Service { get; }
         public ObjectPath Path { get; }
@@ -3566,7 +3598,8 @@ namespace NetworkManager.DBus
             writer.WriteDictionaryEnd(arrayStart);
         }
     }
-    class PropertyChanges<TProperties>
+
+    public class PropertyChanges<TProperties>
     {
         public PropertyChanges(TProperties properties, string[] invalidated, string[] changed)
         	=> (Properties, Invalidated, Changed) = (properties, invalidated, changed);
