@@ -5,7 +5,7 @@ using Bld.Libnl;
 
 namespace Bld.Libnl.NlCommands;
 
-internal abstract class NlDumpCommandBase : NlCommandBase<List<Dictionary<Nl80211Attribute, INl80211AttributeValue>>>
+internal abstract class NlDumpCommandBaseResult : NlCommandBaseResult<List<Dictionary<Nl80211Attribute, INl80211AttributeValue>>>
 {
     private readonly Nl80211Command _command;
     private readonly bool _isSplitDumpSupported;
@@ -14,7 +14,7 @@ internal abstract class NlDumpCommandBase : NlCommandBase<List<Dictionary<Nl8021
     private readonly ConcurrentDictionary<uint, Dictionary<Nl80211Attribute, INl80211AttributeValue>> _pendingEntities =
         new();
 
-    public NlDumpCommandBase(Nl80211Command command, bool isSplitDumpSupported, Nl80211Attribute indexingAttribute) :
+    public NlDumpCommandBaseResult(Nl80211Command command, bool isSplitDumpSupported, Nl80211Attribute indexingAttribute) :
         base()
     {
         _command = command;

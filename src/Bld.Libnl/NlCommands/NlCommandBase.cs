@@ -1,103 +1,49 @@
-using System.Runtime.InteropServices;
-using Bld.Libnl.Types;
+﻿using Bld.Libnl.Types;
 
 namespace Bld.Libnl;
 
-internal abstract class NlCommandBase<TReturn> : IDisposable
+internal abstract class NlCommandBase : IDisposable
 {
-    private readonly NlSock _nlSocket;
-    private readonly LibNlNative.NlRecvmsgCallback _callback;
-    private readonly GCHandle _callbackHandle;
+    protected readonly NlSock NlSocket;
     protected readonly int Nl80211Id;
 
-    private bool _disposed;
+    protected bool Disposed;
 
     protected NlCommandBase()
     {
-        _nlSocket = LibNlNative.nl_socket_alloc();
-        if (!_nlSocket.IsValid)
+        NlSocket = LibNlNative.nl_socket_alloc();
+        if (!NlSocket.IsValid)
         {
             throw new Exception("Failed to allocate socket");
         }
 
-        var connectResult = LibNlNative.genl_connect(_nlSocket);
+        var connectResult = LibNlNative.genl_connect(NlSocket);
         if (connectResult != 0)
         {
-            LibNlNative.nl_socket_free(_nlSocket);
+            LibNlNative.nl_socket_free(NlSocket);
             throw new Exception($"Failed to genl_connect: {connectResult}");
         }
 
-        Nl80211Id = LibNlNative.genl_ctrl_resolve(_nlSocket, "nl80211");
+        Nl80211Id = LibNlNative.genl_ctrl_resolve(NlSocket, "nl80211");
         if (Nl80211Id < 0)
         {
-            LibNlNative.nl_socket_free(_nlSocket);
+            LibNlNative.nl_socket_free(NlSocket);
             throw new Exception($"Failed to resolve nl80211 family: {Nl80211Id}");
         }
-
-        _callback = ProcessMessage;
-        _callbackHandle = GCHandle.Alloc(_callback);
-
-        var cbResult = LibNlNative.nl_socket_modify_cb(
-            _nlSocket,
-            (int)NetlinkCallbackType.NL_CB_VALID,
-            (int)NetlinkCallbackKind.NL_CB_CUSTOM,
-            _callback,
-            IntPtr.Zero
-        );
-
-        if (cbResult != 0)
-        {
-            throw new Exception($"Failed to set callback: {cbResult}");
-        }
-    }
-
-    public TReturn Run()
-    {
-        ObjectDisposedException.ThrowIf(_disposed, this);
-        using var msg = LibNlNative.nlmsg_alloc();
-        if (msg.IsInvalid)
-        {
-            throw new Exception("Failed to allocate netlink message");
-        }
-
-        BuildMessage(msg);
-
-        var sendResult = LibNlNative.nl_send_auto(_nlSocket, msg);
-        if (sendResult < 0)
-        {
-            throw new Exception($"Failed to send netlink message: {sendResult}");
-        }
-
-        var recvResult = LibNlNative.nl_recvmsgs_default(_nlSocket);
-        if (recvResult < 0)
-        {
-            throw new Exception($"Failed to receive netlink messages: {recvResult}");
-        }
-
-        return GetResult();
     }
 
     protected abstract void BuildMessage(NlMsg msg);
 
-    protected abstract int ProcessMessage(IntPtr msgPtr, IntPtr arg);
-
-    protected abstract TReturn GetResult();
-
     protected virtual void Dispose(bool disposing)
     {
-        if (!_disposed)
+        if (!Disposed)
         {
-            if (_nlSocket.IsValid)
+            if (NlSocket.IsValid)
             {
-                LibNlNative.nl_socket_free(_nlSocket);
+                LibNlNative.nl_socket_free(NlSocket);
             }
 
-            if (_callbackHandle.IsAllocated)
-            {
-                _callbackHandle.Free();
-            }
-
-            _disposed = true;
+            Disposed = true;
         }
     }
 

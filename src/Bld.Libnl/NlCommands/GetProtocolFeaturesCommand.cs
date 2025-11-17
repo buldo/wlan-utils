@@ -2,7 +2,7 @@ using Bld.Libnl.Types;
 
 namespace Bld.Libnl.NlCommands;
 
-internal class GetProtocolFeaturesCommand : NlCommandBase<HashSet<Nl80211ProtocolFeature>>
+internal class GetProtocolFeaturesCommand : NlCommandBaseResult<HashSet<Nl80211ProtocolFeature>>
 {
     private HashSet<Nl80211ProtocolFeature> _result = new();
 
