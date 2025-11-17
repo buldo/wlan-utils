@@ -5,9 +5,12 @@ using Bld.Libnl.Types;
 
 namespace Bld.Libnl;
 
-public static unsafe partial class LibNlNative
+internal static unsafe partial class LibNlNative
 {
     private const string LibraryName = "libnl-3.so";
+
+    [DllImport(LibraryName)]
+    public static extern int nl_connect(IntPtr sock, NetlinkProtocol protocol);
 
     [LibraryImport(LibraryName, EntryPoint = "nl_socket_alloc")]
     public static partial NlSock nl_socket_alloc();
