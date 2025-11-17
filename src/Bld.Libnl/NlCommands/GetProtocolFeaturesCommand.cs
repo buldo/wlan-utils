@@ -8,21 +8,10 @@ internal class GetProtocolFeaturesCommand : NlCommandBaseResult<HashSet<Nl80211P
 
     protected override void BuildMessage(NlMsg msg)
     {
-        var hdr = LibNlNative.genlmsg_put(
-            msg,
-            0, // portid (automatic)
-            0, // sequence (automatic)
-            Nl80211Id, // nl80211 family id
-            0, // header length
+        msg.PutAuto(
+            Nl80211Id,
             NetlinkMessageFlags.NLM_F_REQUEST,
-            (byte)Nl80211Command.NL80211_CMD_GET_PROTOCOL_FEATURES,
-            0 // version
-        );
-
-        if (hdr == IntPtr.Zero)
-        {
-            throw new Exception("Failed to build netlink message");
-        }
+            Nl80211Command.NL80211_CMD_GET_PROTOCOL_FEATURES);
     }
 
     protected override HashSet<Nl80211ProtocolFeature> GetResult()

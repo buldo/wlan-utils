@@ -2,15 +2,19 @@
 
 namespace Bld.Libnl.NlCommands;
 
-internal sealed class SetInterfaceTypeCommand : NlCommandBase
+/// <summary>
+/// NL command to set monitor mode flags (NL80211_ATTR_MNTR_FLAGS) for an interface.
+/// Does not change interface type; use SetInterfaceTypeCommand separately if needed.
+/// </summary>
+internal sealed class SetMonitorFlagsCommand : NlCommandBase
 {
     private readonly uint _interfaceIndex;
-    private readonly Nl80211InterfaceType _type;
+    private readonly IReadOnlyCollection<Nl80211MonitorFlag> _flags;
 
-    public SetInterfaceTypeCommand(uint interfaceIndex, Nl80211InterfaceType type)
+    public SetMonitorFlagsCommand(uint interfaceIndex, IEnumerable<Nl80211MonitorFlag> flags)
     {
         _interfaceIndex = interfaceIndex;
-        _type = type;
+        _flags = flags?.ToArray() ?? Array.Empty<Nl80211MonitorFlag>();
     }
 
     protected override void BuildMessage(NlMsg msg)
@@ -18,7 +22,9 @@ internal sealed class SetInterfaceTypeCommand : NlCommandBase
         msg
             .PutAuto(Nl80211Id, NetlinkMessageFlags.NLM_F_REQUEST, Nl80211Command.NL80211_CMD_SET_INTERFACE)
             .PutU32(Nl80211Attribute.NL80211_ATTR_IFINDEX, _interfaceIndex)
-            .PutU32(Nl80211Attribute.NL80211_ATTR_IFTYPE, (uint)_type);
+            .NestStart(Nl80211Attribute.NL80211_ATTR_MNTR_FLAGS)
+            .PutFlags(_flags)
+            .NestEnd();
     }
 
     public void Run()

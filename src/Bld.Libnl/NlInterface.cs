@@ -36,4 +36,10 @@ public class NlInterface
         using var command = new SetInterfaceTypeCommand(interfaceIndex, type);
         command.Run();
     }
+
+    public void SetMonitorFlags(uint interfaceIndex, IEnumerable<Nl80211MonitorFlag> flags)
+    {
+        using var command = new SetMonitorFlagsCommand(interfaceIndex, flags);
+        command.Run();
+    }
 }

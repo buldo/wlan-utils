@@ -24,30 +24,15 @@ internal abstract class NlDumpCommandBaseResult : NlCommandBaseResult<List<Dicti
 
     protected override void BuildMessage(NlMsg msg)
     {
-        var hdr = LibNlNative.genlmsg_put(
-            msg,
-            0, // portid (automatic)
-            0, // sequence (automatic)
-            Nl80211Id, // nl80211 family id
-            0, // header length
-            (NetlinkMessageFlags.NLM_F_REQUEST | NetlinkMessageFlags.NLM_F_DUMP),
-            (byte)_command,
-            0 // version
-        );
-
-        if (hdr == IntPtr.Zero)
-        {
-            throw new Exception("Failed to build netlink message");
-        }
+        msg.PutAuto(
+            Nl80211Id,
+            NetlinkMessageFlags.NLM_F_REQUEST | NetlinkMessageFlags.NLM_F_DUMP,
+            _command);
 
         // Request split dump if supported
         if (_isSplitDumpSupported)
         {
-            var ret = LibNlNative.nla_put_flag(msg, (int)Nl80211Attribute.NL80211_ATTR_SPLIT_WIPHY_DUMP);
-            if (ret != 0)
-            {
-                throw new Exception("Failed to set NL80211_ATTR_SPLIT_WIPHY_DUMP flag");
-            }
+            msg.PutFlag(Nl80211Attribute.NL80211_ATTR_SPLIT_WIPHY_DUMP);
         }
     }
 
