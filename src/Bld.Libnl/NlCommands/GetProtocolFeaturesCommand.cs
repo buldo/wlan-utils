@@ -24,11 +24,11 @@ internal class GetProtocolFeaturesCommand : NlCommandBaseResult<HashSet<Nl80211P
         try
         {
             var nlMessageHeader = LibNlNative.nlmsg_hdr(msgPtr);
-            var genNlMessageHeader = LibNlNative.genlmsg_hdr(nlMessageHeader);
+            var genNlMessageHeader = LibNlGenlNative.genlmsg_hdr(nlMessageHeader);
 
             // Parse attributes
-            var attrData = LibNlNative.genlmsg_attrdata(genNlMessageHeader, 0);
-            var attrLen = LibNlNative.genlmsg_attrlen(genNlMessageHeader, 0);
+            var attrData = LibNlGenlNative.genlmsg_attrdata(genNlMessageHeader, 0);
+            var attrLen = LibNlGenlNative.genlmsg_attrlen(genNlMessageHeader, 0);
 
             int maxAttr = Enum.GetValues<Nl80211Attribute>().Cast<int>().Max();
             var tb = stackalloc IntPtr[maxAttr + 1];

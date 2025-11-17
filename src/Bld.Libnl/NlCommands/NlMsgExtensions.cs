@@ -82,7 +82,7 @@ internal static class NlMsgExtensions
         NetlinkMessageFlags flags,
         Nl80211Command command)
     {
-        var hdr = LibNlNative.genlmsg_put(
+        var hdr = LibNlGenlNative.genlmsg_put(
             msg,
             0, // portid (automatic)
             0, // sequence (automatic)

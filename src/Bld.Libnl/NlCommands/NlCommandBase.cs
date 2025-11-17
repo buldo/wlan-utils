@@ -17,14 +17,14 @@ internal abstract class NlCommandBase : IDisposable
             throw new Exception("Failed to allocate socket");
         }
 
-        var connectResult = LibNlNative.genl_connect(NlSocket);
+        var connectResult = LibNlGenlNative.genl_connect(NlSocket);
         if (connectResult != 0)
         {
             LibNlNative.nl_socket_free(NlSocket);
             throw new Exception($"Failed to genl_connect: {connectResult}");
         }
 
-        Nl80211Id = LibNlNative.genl_ctrl_resolve(NlSocket, "nl80211");
+        Nl80211Id = LibNlGenlNative.genl_ctrl_resolve(NlSocket, "nl80211");
         if (Nl80211Id < 0)
         {
             LibNlNative.nl_socket_free(NlSocket);
