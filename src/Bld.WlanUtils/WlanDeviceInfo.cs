@@ -26,4 +26,5 @@ public class WlanDeviceInfo
     public HashSet<Nl80211InterfaceType>? SupportedInterfaceTypes => PhyAttributes[Nl80211Attribute.NL80211_ATTR_SUPPORTED_IFTYPES].AsInterfaceTypes();
 
     public Nl80211InterfaceType CurrentInterfaceMode => (Nl80211InterfaceType)InterfaceAttributes[Nl80211Attribute.NL80211_ATTR_IFTYPE].AsU32()!;
+    public uint InterfaceIndex => InterfaceAttributes[Nl80211Attribute.NL80211_ATTR_IFINDEX].AsUInt32()!.Value;
 }

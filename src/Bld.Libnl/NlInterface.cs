@@ -42,4 +42,24 @@ public class NlInterface
         using var command = new SetMonitorFlagsCommand(interfaceIndex, flags);
         command.Run();
     }
+
+    public void InterfaceDown(uint interfaceIndex)
+    {
+        using var linkManager = new LinkManager();
+
+        if (linkManager.IsLinkUp(interfaceIndex))
+        {
+            linkManager.SetLinkState(interfaceIndex, false);
+        }
+    }
+
+    public void InterfaceUp(uint interfaceIndex)
+    {
+        using var linkManager = new LinkManager();
+
+        if (!linkManager.IsLinkUp(interfaceIndex))
+        {
+            linkManager.SetLinkState(interfaceIndex, true);
+        }
+    }
 }

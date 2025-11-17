@@ -25,5 +25,3 @@ logger.LogInformation(
     );
 
 await manager.TrySwitchToMonitorAsync(selectedDevice);
-
-Console.WriteLine("Hello, World!");

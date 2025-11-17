@@ -7,7 +7,7 @@ using Bld.Libnl.Types;
 
 namespace Bld.Libnl;
 
-internal class LinkManager
+internal class LinkManager : IDisposable
 {
     private NlSock _socket;
     private bool _disposed = false;
@@ -26,14 +26,14 @@ internal class LinkManager
         }
     }
 
-    public void SetLinkState(int ifindex, bool up)
+    public void SetLinkState(uint ifindex, bool up)
     {
         IntPtr link = IntPtr.Zero;
         IntPtr change = IntPtr.Zero;
 
         try
         {
-            int err = LibNlRouteNative.rtnl_link_get_kernel(_socket, ifindex, null, out link);
+            int err = LibNlRouteNative.rtnl_link_get_kernel(_socket, (int)ifindex, null, out link);
             if (err < 0)
             {
                 throw new Exception($"Failed to get link info for ifindex {ifindex}: {err}");
@@ -59,8 +59,6 @@ internal class LinkManager
             {
                 throw new Exception($"Failed to change link state: {err}");
             }
-
-            Console.WriteLine($"Interface {ifindex} is now {(up ? "UP" : "DOWN")}");
         }
         finally
         {
@@ -80,13 +78,13 @@ internal class LinkManager
     /// <summary>
     /// Получить текущие флаги интерфейса
     /// </summary>
-    public NetDeviceFlag GetLinkFlags(int ifindex)
+    public NetDeviceFlag GetLinkFlags(uint ifindex)
     {
         IntPtr link = IntPtr.Zero;
 
         try
         {
-            int err = LibNlRouteNative.rtnl_link_get_kernel(_socket, ifindex, null, out link);
+            int err = LibNlRouteNative.rtnl_link_get_kernel(_socket, (int)ifindex, null, out link);
             if (err < 0)
             {
                 throw new Exception($"Failed to get link info for ifindex {ifindex}: {err}");
@@ -107,7 +105,7 @@ internal class LinkManager
     /// <summary>
     /// Проверить, что интерфейс в состоянии UP
     /// </summary>
-    public bool IsLinkUp(int ifindex)
+    public bool IsLinkUp(uint ifindex)
     {
         var flags = GetLinkFlags(ifindex);
         return flags.HasFlag(NetDeviceFlag.IFF_UP);
