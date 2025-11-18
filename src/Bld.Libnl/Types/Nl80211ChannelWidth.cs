@@ -4,7 +4,7 @@ namespace Bld.Libnl.Types;
 /// channel width definitions
 /// These values are used with the NL80211_ATTR_CHANNEL_WIDTH attribute.
 /// </summary>
-public enum ChannelWidth
+public enum Nl80211ChannelWidth
 {
     /// <summary>
     /// 20 MHz, non-HT channel
