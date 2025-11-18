@@ -4,10 +4,14 @@ namespace Bld.Libnl.NlCommands;
 
 internal sealed class SwitchChannelCommand : NlCommandBase
 {
+    private readonly uint _interfaceIndex;
     private readonly ChannelDefinition _channelDefinition;
 
-    public SwitchChannelCommand(ChannelDefinition channelDefinition)
+    public SwitchChannelCommand(
+        uint interfaceIndex,
+        ChannelDefinition channelDefinition)
     {
+        _interfaceIndex = interfaceIndex;
         _channelDefinition = channelDefinition;
     }
 
@@ -15,6 +19,7 @@ internal sealed class SwitchChannelCommand : NlCommandBase
     {
         msg
             .PutAuto(Nl80211Id, NetlinkMessageFlags.NLM_F_REQUEST, Nl80211Command.NL80211_CMD_CHANNEL_SWITCH)
+            .PutU32(Nl80211Attribute.NL80211_ATTR_IFINDEX, _interfaceIndex)
             .PutU32(Nl80211Attribute.NL80211_ATTR_WIPHY_FREQ, _channelDefinition.ControlFreq)
             .PutU32(Nl80211Attribute.NL80211_ATTR_WIPHY_FREQ_OFFSET, _channelDefinition.ControlFreqOffset)
             .PutU32(Nl80211Attribute.NL80211_ATTR_CHANNEL_WIDTH, (uint)_channelDefinition.Width);

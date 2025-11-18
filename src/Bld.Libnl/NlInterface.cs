@@ -88,7 +88,7 @@ public class NlInterface
             chanDef.CenterFreq1Offset = 0;
         }
 
-        var command = new SwitchChannelCommand(chanDef);
+        var command = new SwitchChannelCommand(interfaceIndex, chanDef);
         command.Run();
     }
 }
