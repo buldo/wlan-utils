@@ -33,7 +33,7 @@ internal sealed class SetInterfaceTypeCommand : NlCommandBase
 
         BuildMessage(msg);
 
-        var sendResult = LibNlNative.nl_send_auto_complete(NlSocket, msg);
+        var sendResult = LibNlNative.nl_send_auto(NlSocket, msg);
         if (sendResult < 0)
         {
             throw new Exception($"Failed to send netlink message: {sendResult}");

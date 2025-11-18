@@ -21,9 +21,6 @@ internal static unsafe partial class LibNlNative
     [LibraryImport(LibraryName, EntryPoint = "nl_send_auto")]
     public static partial int nl_send_auto(NlSock sock, NlMsg msg);
 
-    [LibraryImport(LibraryName, EntryPoint = "nl_send_auto_complete")]
-    public static partial int nl_send_auto_complete(NlSock sock, NlMsg msg);
-
     [LibraryImport(LibraryName, EntryPoint = "nlmsg_alloc")]
     public static partial NlMsg nlmsg_alloc();
 

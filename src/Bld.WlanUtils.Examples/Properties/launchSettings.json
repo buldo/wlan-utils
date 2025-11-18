@@ -1,11 +1,11 @@
 {
   "profiles": {
     "Bld.WlanUtils.Examples": {
-      "commandName": "Project"
-    },
-    "WSL": {
-      "commandName": "WSL2",
-      "distributionName": ""
+      "commandName": "Project",
+      "environmentVariables": {
+        "NLDBG": 2,
+        "NLCB": "debug"
+      }
     }
   }
 }

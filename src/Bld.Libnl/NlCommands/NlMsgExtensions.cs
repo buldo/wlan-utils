@@ -100,6 +100,30 @@ internal static class NlMsgExtensions
 
         return msg;
     }
+
+    public static NlMsg PutAuto(
+        this NlMsg msg,
+        int family,
+        Nl80211Command command)
+    {
+        var hdr = LibNlGenlNative.genlmsg_put(
+            msg,
+            0, // portid (automatic)
+            0, // sequence (automatic)
+            family, // nl80211 family id
+            0, // header length
+            0,
+            (byte)command,
+            0 // version
+        );
+
+        if (hdr == IntPtr.Zero)
+        {
+            throw new Exception($"Failed to build netlink message. Family:{family}; Command:{command}");
+        }
+
+        return msg;
+    }
 }
 
 internal class NestedPart

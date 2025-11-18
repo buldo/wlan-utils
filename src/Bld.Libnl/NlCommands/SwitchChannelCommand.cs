@@ -18,7 +18,7 @@ internal sealed class SwitchChannelCommand : NlCommandBase
     protected override void BuildMessage(NlMsg msg)
     {
         msg
-            .PutAuto(Nl80211Id, NetlinkMessageFlags.NLM_F_REQUEST, Nl80211Command.NL80211_CMD_CHANNEL_SWITCH)
+            .PutAuto(Nl80211Id, Nl80211Command.NL80211_CMD_CHANNEL_SWITCH)
             .PutU32(Nl80211Attribute.NL80211_ATTR_IFINDEX, _interfaceIndex)
             .PutU32(Nl80211Attribute.NL80211_ATTR_WIPHY_FREQ, _channelDefinition.ControlFreq)
             .PutU32(Nl80211Attribute.NL80211_ATTR_WIPHY_FREQ_OFFSET, _channelDefinition.ControlFreqOffset)
@@ -79,7 +79,7 @@ internal sealed class SwitchChannelCommand : NlCommandBase
 
         BuildMessage(msg);
 
-        var sendResult = LibNlNative.nl_send_auto_complete(NlSocket, msg);
+        var sendResult = LibNlNative.nl_send_auto(NlSocket, msg);
         if (sendResult < 0)
         {
             throw new Exception($"Failed to send netlink message: {sendResult}");

@@ -73,7 +73,7 @@ public class NlInterface
 
     public void SetChannel(uint interfaceIndex, uint freq, ChannelMode mode)
     {
-        var chanDef = new ChannelDefinition()
+        var chanDef = new ChannelDefinition
         {
             ControlFreq = freq,
             ControlFreqOffset = 0,
