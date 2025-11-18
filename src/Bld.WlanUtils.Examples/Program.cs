@@ -36,7 +36,7 @@ internal class Program
         //await manager.IwSetFrequencyAndChannelWidth(deviceName, Channels.Ch048, ChannelWidth._20MHz);
 
         //var ch = Channels.Ch048;
-        //var byFreq = ChannelsMapper.GetByFrequency(ch.ChannelFrequencyMHz);
-        //var byNum = ChannelsMapper.GetByNumber(ch.ChannelNumber);
+        //var byFreq = ChannelsUtils.GetByFrequency(ch.ChannelFrequencyMHz);
+        //var byNum = ChannelsUtils.GetByNumber(ch.ChannelNumber);
     }
 }

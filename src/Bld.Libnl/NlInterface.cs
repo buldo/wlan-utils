@@ -1,4 +1,6 @@
-﻿using Bld.Libnl.NlCommands;
+﻿using System.Threading.Channels;
+
+using Bld.Libnl.NlCommands;
 using Bld.Libnl.Types;
 
 namespace Bld.Libnl;
@@ -61,5 +63,32 @@ public class NlInterface
         {
             linkManager.SetLinkState(interfaceIndex, true);
         }
+    }
+
+    public void SetChannel(uint interfaceIndex, uint chan, Nl80211Band band, ChannelMode mode)
+    {
+        var freq = ChannelsUtils.ChannelToFrequency(chan, band);
+        SetChannel(interfaceIndex, freq, mode);
+    }
+
+    public void SetChannel(uint interfaceIndex, uint freq, ChannelMode mode)
+    {
+        var chanDef = new ChannelDefinition()
+        {
+            ControlFreq = freq,
+            ControlFreqOffset = 0,
+            CenterFreq1 = ChannelsUtils.GetCf1(mode, freq),
+            CenterFreq1Offset = 0,
+            Width = mode.width
+        };
+
+        /* For non-S1G frequency */
+        if (chanDef.CenterFreq1 > 1000)
+        {
+            chanDef.CenterFreq1Offset = 0;
+        }
+
+        var command = new SwitchChannelCommand(chanDef);
+        command.Run();
     }
 }

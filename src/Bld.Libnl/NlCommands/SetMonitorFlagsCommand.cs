@@ -2,10 +2,6 @@
 
 namespace Bld.Libnl.NlCommands;
 
-/// <summary>
-/// NL command to set monitor mode flags (NL80211_ATTR_MNTR_FLAGS) for an interface.
-/// Does not change interface type; use SetInterfaceTypeCommand separately if needed.
-/// </summary>
 internal sealed class SetMonitorFlagsCommand : NlCommandBase
 {
     private readonly uint _interfaceIndex;
