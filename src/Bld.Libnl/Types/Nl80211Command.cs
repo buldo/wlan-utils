@@ -103,6 +103,11 @@ public enum Nl80211Command : byte
     NL80211_CMD_SET_CQM,
     NL80211_CMD_NOTIFY_CQM,
 
+    /// <summary>
+    /// Set the channel (using %NL80211_ATTR_WIPHY_FREQ and the attributes determining channel width) the given interface (identified by %NL80211_ATTR_IFINDEX) shall operate on.
+    /// In case multiple channels are supported by the device, the mechanism with which it switches channels is implementation-defined.
+    /// When a monitor interface is given, it can only switch channel while no other interfaces are operating to avoid disturbing the operation of any other interfaces, and other interfaces will again take precedence when they are used.
+    /// </summary>
     NL80211_CMD_SET_CHANNEL,
     NL80211_CMD_SET_WDS_PEER,
 

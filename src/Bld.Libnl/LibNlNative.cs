@@ -9,14 +9,38 @@ internal static unsafe partial class LibNlNative
 {
     private const string LibraryName = "libnl-3.so";
 
-    [DllImport(LibraryName)]
-    public static extern int nl_connect(IntPtr sock, NetlinkProtocol protocol);
+    [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
+    public delegate int NlRecvmsgCb(IntPtr msg, IntPtr arg);
+
+    [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
+    public delegate int NlRecvmsgErrCb(IntPtr nla, IntPtr nlerr, IntPtr arg);
+
+    [LibraryImport(LibraryName, EntryPoint="nl_connect")]
+    public static partial int nl_connect(IntPtr sock, NetlinkProtocol protocol);
+
+    [LibraryImport(LibraryName, EntryPoint="nl_recvmsgs")]
+    public static partial int nl_recvmsgs(NlSock sk, NlCb cb);
+
+    [LibraryImport(LibraryName, EntryPoint = "nl_cb_alloc")]
+    public static partial NlCb nl_cb_alloc(NlCbKind kind);
+
+    [LibraryImport(LibraryName, EntryPoint = "nl_cb_put")]
+    public static partial void nl_cb_put(IntPtr kind);
+
+    [LibraryImport(LibraryName, EntryPoint = "nl_cb_err")]
+    public static partial int nl_cb_err(NlCb cb, NlCbKind kind, NlRecvmsgErrCb func, IntPtr arg);
+
+    [LibraryImport(LibraryName, EntryPoint = "nl_cb_set")]
+    public static partial int nl_cb_set(NlCb cb, NlCbType type, NlCbKind kind, NlRecvmsgCb func, IntPtr arg);
 
     [LibraryImport(LibraryName, EntryPoint = "nl_socket_alloc")]
     public static partial NlSock nl_socket_alloc();
 
     [LibraryImport(LibraryName, EntryPoint = "nl_socket_free")]
-    public static partial void nl_socket_free(NlSock sock);
+    public static partial void nl_socket_free(IntPtr sock);
+
+    [LibraryImport(LibraryName, EntryPoint = "nl_socket_set_cb")]
+    public static partial void nl_socket_set_cb(NlSock sk, NlCb cb);
 
     [LibraryImport(LibraryName, EntryPoint = "nl_send_auto")]
     public static partial int nl_send_auto(NlSock sock, NlMsg msg);
@@ -39,11 +63,8 @@ internal static unsafe partial class LibNlNative
     [LibraryImport(LibraryName, EntryPoint = "nla_nest_end")]
     public static partial void nla_nest_end(NlMsg msg, IntPtr start);
 
-    [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
-    public delegate int NlRecvmsgCallback(IntPtr msg, IntPtr arg);
-
     [LibraryImport(LibraryName, EntryPoint = "nl_socket_modify_cb")]
-    public static partial int nl_socket_modify_cb(NlSock sock, int type, int kind, NlRecvmsgCallback callback, IntPtr arg);
+    public static partial int nl_socket_modify_cb(NlSock sock, int type, int kind, NlRecvmsgCb callback, IntPtr arg);
 
     [LibraryImport(LibraryName, EntryPoint = "nl_recvmsgs_default")]
     public static partial int nl_recvmsgs_default(NlSock sock);

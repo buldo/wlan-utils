@@ -7,29 +7,21 @@ namespace Bld.Libnl.NlCommands;
 
 internal abstract class NlDumpCommandBaseResult : NlCommandBaseResult<List<Dictionary<Nl80211Attribute, INl80211AttributeValue>>>
 {
-    private readonly Nl80211Command _command;
     private readonly bool _isSplitDumpSupported;
     private readonly Nl80211Attribute _indexingAttribute;
 
     private readonly ConcurrentDictionary<uint, Dictionary<Nl80211Attribute, INl80211AttributeValue>> _pendingEntities =
         new();
 
-    public NlDumpCommandBaseResult(Nl80211Command command, bool isSplitDumpSupported, Nl80211Attribute indexingAttribute) :
-        base()
+    protected NlDumpCommandBaseResult(Nl80211Command command, bool isSplitDumpSupported, Nl80211Attribute indexingAttribute)
+        : base(command, NetlinkMessageFlags.NLM_F_REQUEST | NetlinkMessageFlags.NLM_F_DUMP)
     {
-        _command = command;
         _isSplitDumpSupported = isSplitDumpSupported;
         _indexingAttribute = indexingAttribute;
     }
 
     protected override void BuildMessage(NlMsg msg)
     {
-        msg.PutAuto(
-            Nl80211Id,
-            NetlinkMessageFlags.NLM_F_REQUEST | NetlinkMessageFlags.NLM_F_DUMP,
-            _command);
-
-        // Request split dump if supported
         if (_isSplitDumpSupported)
         {
             msg.PutFlag(Nl80211Attribute.NL80211_ATTR_SPLIT_WIPHY_DUMP);
@@ -41,7 +33,7 @@ internal abstract class NlDumpCommandBaseResult : NlCommandBaseResult<List<Dicti
         return _pendingEntities.Values.ToList();
     }
 
-    protected override unsafe int ProcessMessage(IntPtr msgPtr, IntPtr arg)
+    protected override unsafe int ProcessValidMessage(IntPtr msgPtr, IntPtr arg)
     {
         try
         {

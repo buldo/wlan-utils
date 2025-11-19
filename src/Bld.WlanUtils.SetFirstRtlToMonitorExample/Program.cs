@@ -30,5 +30,5 @@ logger.LogInformation("Switched to monitor mode");
 // 5660MHz == 132channel
 var freq = 5660u;
 var mode = ChannelModes.ModeHt20;
-manager.SwitchChannel(selectedDevice, freq, mode);
+manager.SetChannel(selectedDevice, freq, mode);
 logger.LogInformation("Switched to {Freq}MHz, {ModeName}", freq, mode.name);

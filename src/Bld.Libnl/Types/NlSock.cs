@@ -1,13 +1,32 @@
+using System.Runtime.InteropServices;
+
 namespace Bld.Libnl.Types;
 
-/// <summary>Type-safe wrapper for nl_sock pointer</summary>
-public readonly struct NlSock
+public sealed class NlSock : SafeHandle
 {
-    public readonly IntPtr Handle;
+    public NlSock() : base(IntPtr.Zero, true)
+    {
+    }
 
-    public NlSock(IntPtr handle) => Handle = handle;
+    public override bool IsInvalid => handle <= IntPtr.Zero;
 
-    public bool IsValid => Handle != IntPtr.Zero;
+    protected override bool ReleaseHandle()
+    {
+        if (!IsInvalid)
+        {
+            LibNlNative.nl_socket_free(handle);
+        }
 
-    public static implicit operator IntPtr(NlSock sock) => sock.Handle;
+        return true;
+    }
+
+    public void SetCb(NlCb nlCb)
+    {
+        LibNlNative.nl_socket_set_cb(this, nlCb);
+    }
+
+    public void RecvMsgs(NlCb cb)
+    {
+        LibNlNative.nl_recvmsgs(this, cb);
+    }
 }

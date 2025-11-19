@@ -2,24 +2,24 @@
 
 namespace Bld.Libnl.NlCommands;
 
-internal sealed class SwitchChannelCommand : NlCommandBase
+/// <summary>
+/// Set the channel (using %NL80211_ATTR_WIPHY_FREQ and the attributes determining channel width) the given interface (identified by %NL80211_ATTR_IFINDEX) shall operate on.
+/// In case multiple channels are supported by the device, the mechanism with which it switches channels is implementation-defined.
+/// When a monitor interface is given, it can only switch channel while no other interfaces are operating to avoid disturbing the operation of any other interfaces, and other interfaces will again take precedence when they are used.
+/// </summary>
+internal sealed class SetChannelCommand : NlCommandNoResultBase
 {
-    private readonly uint _interfaceIndex;
     private readonly ChannelDefinition _channelDefinition;
 
-    public SwitchChannelCommand(
-        uint interfaceIndex,
-        ChannelDefinition channelDefinition)
+    public SetChannelCommand(uint interfaceIndex, ChannelDefinition channelDefinition)
+        : base(Nl80211Command.NL80211_CMD_SET_CHANNEL, new NetlinkMessageFlags(), interfaceIndex)
     {
-        _interfaceIndex = interfaceIndex;
         _channelDefinition = channelDefinition;
     }
 
     protected override void BuildMessage(NlMsg msg)
     {
         msg
-            .PutAuto(Nl80211Id, Nl80211Command.NL80211_CMD_CHANNEL_SWITCH)
-            .PutU32(Nl80211Attribute.NL80211_ATTR_IFINDEX, _interfaceIndex)
             .PutU32(Nl80211Attribute.NL80211_ATTR_WIPHY_FREQ, _channelDefinition.ControlFreq)
             .PutU32(Nl80211Attribute.NL80211_ATTR_WIPHY_FREQ_OFFSET, _channelDefinition.ControlFreqOffset)
             .PutU32(Nl80211Attribute.NL80211_ATTR_CHANNEL_WIDTH, (uint)_channelDefinition.Width);
@@ -64,25 +64,6 @@ internal sealed class SwitchChannelCommand : NlCommandBase
         if (_channelDefinition.Punctured != 0)
         {
             msg.PutU32(Nl80211Attribute.NL80211_ATTR_PUNCT_BITMAP, _channelDefinition.Punctured);
-        }
-    }
-
-    public void Run()
-    {
-        ObjectDisposedException.ThrowIf(Disposed, this);
-
-        using var msg = LibNlNative.nlmsg_alloc();
-        if (msg.IsInvalid)
-        {
-            throw new Exception("Failed to allocate netlink message");
-        }
-
-        BuildMessage(msg);
-
-        var sendResult = LibNlNative.nl_send_auto(NlSocket, msg);
-        if (sendResult < 0)
-        {
-            throw new Exception($"Failed to send netlink message: {sendResult}");
         }
     }
 }

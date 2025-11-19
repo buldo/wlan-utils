@@ -4,14 +4,15 @@ namespace Bld.Libnl.NlCommands;
 
 internal class GetProtocolFeaturesCommand : NlCommandBaseResult<HashSet<Nl80211ProtocolFeature>>
 {
-    private HashSet<Nl80211ProtocolFeature> _result = new();
+    private readonly HashSet<Nl80211ProtocolFeature> _result = new();
+
+    public GetProtocolFeaturesCommand()
+        : base(Nl80211Command.NL80211_CMD_GET_PROTOCOL_FEATURES, NetlinkMessageFlags.NLM_F_REQUEST)
+    {
+    }
 
     protected override void BuildMessage(NlMsg msg)
     {
-        msg.PutAuto(
-            Nl80211Id,
-            NetlinkMessageFlags.NLM_F_REQUEST,
-            Nl80211Command.NL80211_CMD_GET_PROTOCOL_FEATURES);
     }
 
     protected override HashSet<Nl80211ProtocolFeature> GetResult()
@@ -19,7 +20,7 @@ internal class GetProtocolFeaturesCommand : NlCommandBaseResult<HashSet<Nl80211P
         return _result;
     }
 
-    protected override unsafe int ProcessMessage(IntPtr msgPtr, IntPtr arg)
+    protected override unsafe int ProcessValidMessage(IntPtr msgPtr, IntPtr arg)
     {
         try
         {

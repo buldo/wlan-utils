@@ -2,12 +2,13 @@
 
 namespace Bld.Libnl.NlCommands;
 
-internal sealed class SetMonitorFlagsCommand : NlCommandBase
+internal sealed class SetMonitorFlagsCommand : NlCommandNoResultBase
 {
     private readonly uint _interfaceIndex;
     private readonly IReadOnlyCollection<Nl80211MonitorFlag> _flags;
 
     public SetMonitorFlagsCommand(uint interfaceIndex, IEnumerable<Nl80211MonitorFlag> flags)
+    : base(Nl80211Command.NL80211_CMD_SET_INTERFACE, new NetlinkMessageFlags(), interfaceIndex)
     {
         _interfaceIndex = interfaceIndex;
         _flags = flags?.ToArray() ?? Array.Empty<Nl80211MonitorFlag>();
@@ -16,29 +17,8 @@ internal sealed class SetMonitorFlagsCommand : NlCommandBase
     protected override void BuildMessage(NlMsg msg)
     {
         msg
-            .PutAuto(Nl80211Id, NetlinkMessageFlags.NLM_F_REQUEST, Nl80211Command.NL80211_CMD_SET_INTERFACE)
-            .PutU32(Nl80211Attribute.NL80211_ATTR_IFINDEX, _interfaceIndex)
             .NestStart(Nl80211Attribute.NL80211_ATTR_MNTR_FLAGS)
             .PutFlags(_flags)
             .NestEnd();
-    }
-
-    public void Run()
-    {
-        ObjectDisposedException.ThrowIf(Disposed, this);
-
-        using var msg = LibNlNative.nlmsg_alloc();
-        if (msg.IsInvalid)
-        {
-            throw new Exception("Failed to allocate netlink message");
-        }
-
-        BuildMessage(msg);
-
-        var sendResult = LibNlNative.nl_send_auto(NlSocket, msg);
-        if (sendResult < 0)
-        {
-            throw new Exception($"Failed to send netlink message: {sendResult}");
-        }
     }
 }

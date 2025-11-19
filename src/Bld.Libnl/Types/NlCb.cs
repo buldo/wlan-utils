@@ -2,20 +2,21 @@ using System.Runtime.InteropServices;
 
 namespace Bld.Libnl.Types;
 
-public sealed class NlMsg : SafeHandle
+public sealed class NlCb : SafeHandle
 {
-    public NlMsg() : base(IntPtr.Zero, true)
+    public NlCb() : base(IntPtr.Zero, true)
     {
     }
+
+    public override bool IsInvalid => handle <= IntPtr.Zero;
 
     protected override bool ReleaseHandle()
     {
         if (!IsInvalid)
         {
-            LibNlNative.nlmsg_free(handle);
+            LibNlNative.nl_cb_put(handle);
         }
+
         return true;
     }
-
-    public override bool IsInvalid => handle <= IntPtr.Zero;
 }

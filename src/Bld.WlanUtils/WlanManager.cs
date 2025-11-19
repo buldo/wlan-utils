@@ -47,7 +47,7 @@ public class WlanManager
 
 
 
-    public void SwitchChannel(WlanDeviceInfo selectedDevice, uint freq, ChannelMode mode)
+    public void SetChannel(WlanDeviceInfo selectedDevice, uint freq, ChannelMode mode)
     {
         _nlInterface.SetChannel(selectedDevice.InterfaceIndex, freq, mode);
     }

@@ -3,7 +3,7 @@ namespace Bld.Libnl.Types;
 /// <summary>
 /// Callback types from libnl
 /// </summary>
-public enum NetlinkCallbackType
+public enum NlCbType
 {
     /// <summary>
     /// Message is valid

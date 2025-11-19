@@ -15,13 +15,15 @@ internal class LinkManager : IDisposable
     public LinkManager()
     {
         _socket = LibNlNative.nl_socket_alloc();
-        if (_socket == IntPtr.Zero)
+        if (_socket.IsInvalid)
+        {
             throw new Exception("Failed to allocate netlink socket");
+        }
 
-        int err = LibNlNative.nl_connect(_socket, NetlinkProtocol.NETLINK_ROUTE);
+        int err = LibNlNative.nl_connect(_socket.DangerousGetHandle(), NetlinkProtocol.NETLINK_ROUTE);
         if (err < 0)
         {
-            LibNlNative.nl_socket_free(_socket);
+            LibNlNative.nl_socket_free(_socket.DangerousGetHandle());
             throw new Exception($"Failed to connect to NETLINK_ROUTE: {err}");
         }
     }
@@ -113,10 +115,9 @@ internal class LinkManager : IDisposable
 
     public void Dispose()
     {
-        if (!_disposed && _socket != IntPtr.Zero)
+        if (!_disposed && !_socket.IsInvalid)
         {
-            LibNlNative.nl_socket_free(_socket);
-            _socket = new NlSock(IntPtr.Zero);
+            _socket.Dispose();
             _disposed = true;
         }
     }
